@@ -60,6 +60,8 @@ export interface OpcoesServidor {
   cofre: Cofre;
   backup?: (srv: Servidor) => ServicoBackup;
   log?: (m: string) => void;
+  /** Porta fixa da interface (para abrir no navegador). Sem ela, usa uma porta livre qualquer. */
+  portaApi?: number;
 }
 
 export class Servidor {
@@ -165,9 +167,18 @@ export class Servidor {
       pastaWeb: this.op.pastaWeb,
       log: false,
       backup: this.op.backup?.(this),
+      hostsPermitidos: this.op.portaApi ? [`localhost:${this.op.portaApi}`, `127.0.0.1:${this.op.portaApi}`] : undefined,
     });
-    const porta = await portaLivre();
-    await app.listen(porta, '127.0.0.1');
+    const porta = this.op.portaApi ?? (await portaLivre());
+    try {
+      await app.listen(porta, '127.0.0.1');
+    } catch (e: any) {
+      await app.close().catch(() => {});
+      await banco.fechar().catch(() => {});
+      if (e?.code === 'EADDRINUSE')
+        throw new Error(`A porta ${porta} já está em uso por outro programa. Feche esse programa e abra o Controle SST de novo.`);
+      throw e;
+    }
     this.url = `http://127.0.0.1:${porta}`;
     this.fecharApi = async () => {
       await app.close();

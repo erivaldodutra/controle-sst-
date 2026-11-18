@@ -1,8 +1,17 @@
-import { app, BrowserWindow, dialog, Menu, safeStorage, shell } from 'electron';
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { app, dialog, Menu, nativeImage, safeStorage, shell, Tray } from 'electron';
+import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { GestorBackup } from './gestorBackup';
+import { ICONE_BANDEJA } from './iconeBandeja';
 import { Cofre, Servidor } from './servidor';
+
+/**
+ * O Controle SST roda em segundo plano no notebook (ícone na bandeja, perto do relógio)
+ * e é usado pelo navegador, no endereço fixo abaixo. Só este computador acessa:
+ * o servidor escuta apenas em 127.0.0.1 e não abre porta para a rede.
+ */
+const PORTA = 8088;
+const ENDERECO = `http://localhost:${PORTA}`;
 
 const pastaDados = join(app.getPath('userData'), 'dados');
 const pastaLogs = join(app.getPath('userData'), 'logs');
@@ -33,31 +42,64 @@ const cofre = !app.isPackaged && process.env.SST_DEV_COFRE_SIMPLES === '1' ? cof
 
 let servidor: Servidor | null = null;
 let gestor: GestorBackup | null = null;
-let janela: BrowserWindow | null = null;
+let bandeja: Tray | null = null;
 let saindo = false;
+let pronto = false;
+
+const abrirNavegador = () => {
+  if (pronto) shell.openExternal(ENDERECO);
+};
 
 if (!app.requestSingleInstanceLock()) app.quit();
-app.on('second-instance', () => {
-  if (janela) {
-    if (janela.isMinimized()) janela.restore();
-    janela.focus();
-  }
-});
+// Abrir o atalho de novo só abre o navegador; o sistema já está rodando.
+app.on('second-instance', abrirNavegador);
+
+function montarMenu() {
+  if (!bandeja) return;
+  const inicia = app.getLoginItemSettings().openAtLogin;
+  bandeja.setContextMenu(Menu.buildFromTemplate([
+    { label: pronto ? `Abrir no navegador (${ENDERECO})` : 'Iniciando…', enabled: pronto, click: abrirNavegador },
+    { type: 'separator' },
+    {
+      label: 'Iniciar junto com o Windows', type: 'checkbox', checked: inicia,
+      click: (i) => {
+        app.setLoginItemSettings({ openAtLogin: i.checked });
+        montarMenu();
+      },
+    },
+    { type: 'separator' },
+    { label: 'Sair do Controle SST', click: () => app.quit() },
+  ]));
+}
 
 async function iniciar() {
   Menu.setApplicationMenu(null);
-  const carregando = new BrowserWindow({ width: 420, height: 220, frame: false, resizable: false, show: true });
-  carregando.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(
-    '<body style="font-family:Segoe UI,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#1d2733">' +
-    '<div style="text-align:center"><b>Controle SST</b><p style="color:#64748b">Iniciando o banco de dados local…</p></div></body>'));
+  bandeja = new Tray(nativeImage.createFromDataURL(ICONE_BANDEJA));
+  bandeja.setToolTip('Controle SST');
+  bandeja.on('click', abrirNavegador);
+  bandeja.on('double-click', abrirNavegador);
+  montarMenu();
+
+  // Na primeira execução, passa a iniciar junto com o Windows (pode ser desligado no menu da bandeja).
+  const marca = join(app.getPath('userData'), 'primeira-execucao-feita');
+  if (app.isPackaged && !existsSync(marca)) {
+    app.setLoginItemSettings({ openAtLogin: true });
+    try {
+      writeFileSync(marca, new Date().toISOString());
+    } catch {
+      /* ignora */
+    }
+    montarMenu();
+  }
+
   try {
     servidor = new Servidor({
-      pastaDados, pastaWeb, pastaMigrations, cofre, log,
+      pastaDados, pastaWeb, pastaMigrations, cofre, log, portaApi: PORTA,
       backup: (srv) => (gestor = new GestorBackup(srv, {
-        escolherDestino: async (nome) => (await dialog.showSaveDialog(janela!, {
+        escolherDestino: async (nome) => (await dialog.showSaveDialog({
           title: 'Salvar cópia do backup', defaultPath: nome, filters: [{ name: 'Backup do Controle SST', extensions: ['sstbak'] }],
         })).filePath ?? null,
-        escolherArquivo: async () => (await dialog.showOpenDialog(janela!, {
+        escolherArquivo: async () => (await dialog.showOpenDialog({
           title: 'Escolha o backup para restaurar', properties: ['openFile'], filters: [{ name: 'Backup do Controle SST', extensions: ['sstbak'] }],
         })).filePaths[0] ?? null,
         reiniciar: () => {
@@ -71,40 +113,26 @@ async function iniciar() {
     log(`Servidor local em ${servidor.url}`);
   } catch (e: any) {
     log(`Falha ao iniciar: ${e?.stack ?? e}`);
-    carregando.destroy();
     dialog.showErrorBox('Controle SST', `Não foi possível iniciar o sistema.\n\n${e?.message ?? e}\n\nDetalhes em: ${pastaLogs}`);
     app.exit(1);
     return;
   }
 
-  janela = new BrowserWindow({
-    width: 1366, height: 860, minWidth: 1024, minHeight: 640, show: false, title: 'Controle SST',
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
-  });
-  const origem = servidor.url;
-  // Nada sai do aplicativo: links externos abrem no navegador do sistema, navegação fora do servidor local é bloqueada.
-  janela.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith(origem)) return { action: 'allow' };
-    if (/^https?:\/\//.test(url)) shell.openExternal(url);
-    return { action: 'deny' };
-  });
-  janela.webContents.on('will-navigate', (e, url) => {
-    if (!url.startsWith(origem)) e.preventDefault();
-  });
-  janela.webContents.session.on('will-download', (_e, item) => {
-    item.setSaveDialogOptions({ title: 'Salvar arquivo' });
-  });
-  await janela.loadURL(origem);
-  carregando.destroy();
-  janela.maximize();
-  janela.show();
+  pronto = true;
+  montarMenu();
+  bandeja.setToolTip(`Controle SST: ${ENDERECO}`);
+  // Ao iniciar junto com o Windows fica só na bandeja; aberto pelo usuário, já abre o navegador.
+  if (!app.getLoginItemSettings().wasOpenedAtLogin) abrirNavegador();
+  if (process.platform === 'win32')
+    bandeja.displayBalloon({ title: 'Controle SST está rodando', content: `Acesse pelo navegador: ${ENDERECO}`, iconType: 'info' });
 }
 
 app.whenReady().then(iniciar);
 
-app.on('window-all-closed', () => app.quit());
+// Sem janelas próprias: o aplicativo continua na bandeja até o usuário escolher "Sair".
+app.on('window-all-closed', () => {});
 
-// Ao fechar: backup automático (se houver senha de backup) e desligamento limpo do banco.
+// Ao sair: backup automático (se houver senha de backup) e desligamento limpo do banco.
 app.on('before-quit', (e) => {
   if (saindo || !servidor) return;
   e.preventDefault();
@@ -113,7 +141,7 @@ app.on('before-quit', (e) => {
     try {
       if (gestor && servidor?.segredos.senhaBackup) {
         await gestor.criarAgora(false);
-        log('Backup automático criado ao fechar');
+        log('Backup automático criado ao sair');
       }
     } catch (x: any) {
       log(`Falha no backup automático: ${x?.message}`);
