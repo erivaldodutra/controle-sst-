@@ -53,11 +53,41 @@ let bandeja: Tray | null = null;
 let saindo = false;
 let pronto = false;
 
+let abrirQuandoPronto = false;
 const abrirNavegador = () => {
   if (pronto) shell.openExternal(ENDERECO);
+  else abrirQuandoPronto = true;
 };
 
-if (!app.requestSingleInstanceLock()) app.quit();
+process.on('uncaughtException', (e) => {
+  log(`Erro inesperado: ${e?.stack ?? e}`);
+  dialog.showErrorBox('Controle SST', `Erro inesperado.\n\n${e?.message ?? e}\n\nDetalhes em: ${pastaLogs}`);
+});
+
+/**
+ * Já existe um Controle SST rodando (talvez de uma versão anterior que não fechou).
+ * Se ele responde, ele mesmo abre o navegador; se não, avisa em vez de sumir sem explicação.
+ */
+async function outraInstancia() {
+  log(`Outra cópia já está rodando; esta (${process.execPath}) será fechada`);
+  // A outra cópia pode estar só terminando de iniciar: espera até 90 segundos.
+  let responde = false;
+  for (let i = 0; i < 18 && !responde; i++) {
+    responde = await fetch(`${ENDERECO}/api/auth/estado`, { signal: AbortSignal.timeout(5000) }).then((r) => r.ok, () => false);
+    if (!responde) await new Promise((ok) => setTimeout(ok, 5000));
+  }
+  if (!responde) {
+    await app.whenReady();
+    dialog.showErrorBox('Controle SST',
+      'O Controle SST já está aberto em segundo plano, mas não está respondendo.\n\n'
+      + 'Reinicie o computador e abra o Controle SST de novo. Se preferir, encerre os processos "Controle SST" e "postgres" '
+      + 'no Gerenciador de Tarefas (Ctrl+Shift+Esc) e abra de novo.');
+  }
+  app.exit(0);
+}
+
+const unica = app.requestSingleInstanceLock();
+if (!unica) void outraInstancia();
 // Abrir o atalho de novo só abre o navegador; o sistema já está rodando.
 app.on('second-instance', abrirNavegador);
 
@@ -177,12 +207,19 @@ async function iniciar() {
   montarMenu();
   bandeja.setToolTip(`Controle SST: ${ENDERECO}`);
   // Ao iniciar junto com o Windows fica só na bandeja; aberto pelo usuário, já abre o navegador.
-  if (!app.getLoginItemSettings().wasOpenedAtLogin) abrirNavegador();
+  if (abrirQuandoPronto || !app.getLoginItemSettings().wasOpenedAtLogin) abrirNavegador();
   if (process.platform === 'win32')
     bandeja.displayBalloon({ title: 'Controle SST está rodando', content: `Acesse pelo navegador: ${ENDERECO}`, iconType: 'info' });
 }
 
-app.whenReady().then(iniciar);
+if (unica) {
+  log(`Iniciando versão ${app.getVersion()} em ${process.execPath}; dados em ${pastaDados}`);
+  app.whenReady().then(iniciar).catch((e) => {
+    log(`Falha ao iniciar: ${e?.stack ?? e}`);
+    dialog.showErrorBox('Controle SST', `Não foi possível iniciar o sistema.\n\n${e?.message ?? e}\n\nDetalhes em: ${pastaLogs}`);
+    app.exit(1);
+  });
+}
 
 // Sem janelas próprias: o aplicativo continua na bandeja até o usuário escolher "Sair".
 app.on('window-all-closed', () => {});
