@@ -17,6 +17,11 @@ import { Importacoes } from './paginas/Importacoes';
 import { Inicio } from './paginas/Inicio';
 import { MinhaConta } from './paginas/MinhaConta';
 import { Usuarios } from './paginas/Usuarios';
+import { Asos } from './paginas/Asos';
+import { CadastrosSaude } from './paginas/CadastrosSaude';
+import { Treinamentos } from './paginas/Treinamentos';
+import { Turma } from './paginas/Turma';
+import { Vencimentos } from './paginas/Vencimentos';
 import './estilo.css';
 
 const qc = new QueryClient({
@@ -63,6 +68,11 @@ function App() {
             <Route path="/funcionarios" element={<Funcionarios />} />
             <Route path="/funcionarios/:id" element={<FuncionarioFicha />} />
             <Route path="/importacoes" element={<Importacoes />} />
+            <Route path="/vencimentos" element={<Vencimentos />} />
+            <Route path="/asos" element={<Asos />} />
+            <Route path="/saude/cadastros" element={<CadastrosSaude />} />
+            <Route path="/treinamentos" element={<Treinamentos />} />
+            <Route path="/turmas/:id" element={<Turma />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/auditoria" element={<Auditoria />} />
             <Route path="/backup" element={<Backup />} />

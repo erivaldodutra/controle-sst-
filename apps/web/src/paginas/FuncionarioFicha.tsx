@@ -6,6 +6,7 @@ import { api, ErroApi } from '../lib/api';
 import { cpf, dataBr, dataHoraBr, hojeIso, SITUACOES } from '../lib/formato';
 import { useSessao } from '../lib/sessao';
 import { Posicao, posicaoVazia, SeletorPosicao } from '../componentes/Posicao';
+import { FichaAsos, FichaTreinamentos } from '../componentes/FichaSaude';
 import { Aviso, Campo, Carregando, Etiqueta, Modal, Titulo, Vazio } from '../componentes/ui';
 
 function FormSimples({ titulo, children, aoEnviar, botao = 'Salvar', perigo }: {
@@ -47,7 +48,7 @@ export function FuncionarioFicha() {
   const { id } = useParams();
   const s = useSessao();
   const qc = useQueryClient();
-  const [aba, setAba] = useState<'vinculos' | 'historico'>('vinculos');
+  const [aba, setAba] = useState<'vinculos' | 'aso' | 'treinamentos' | 'historico'>('vinculos');
   const [acao, setAcao] = useState<Acao | null>(null);
   const f = useQuery({ queryKey: ['funcionario', id], queryFn: () => api.get(`/funcionarios/${id}`) });
   const hist = useQuery({ queryKey: ['funcionario', id, 'historico'], queryFn: () => api.get(`/funcionarios/${id}/historico`), enabled: aba === 'historico' });
@@ -78,7 +79,10 @@ export function FuncionarioFicha() {
         ].map(([r, v]) => <div key={r}><div className="text-xs text-slate-500">{r}</div><div>{v}</div></div>)}
       </div>
       <div className="mb-3 flex gap-1 border-b border-slate-200">
-        {([['vinculos', 'Vínculos e lotações'], ['historico', 'Histórico de alterações']] as const).map(([k, r]) => (
+        {([
+          ['vinculos', 'Vínculos e lotações', true], ['aso', 'ASO', s.pode('saude.ler')],
+          ['treinamentos', 'Treinamentos', s.pode('treinamentos.ler')], ['historico', 'Histórico de alterações', true],
+        ] as const).filter(([, , ok]) => ok).map(([k, r]) => (
           <button key={k} onClick={() => setAba(k)}
             className={`-mb-px border-b-2 px-3 py-2 text-sm ${aba === k ? 'border-marca-600 font-medium text-marca-700' : 'border-transparent text-slate-500'}`}>{r}</button>
         ))}
@@ -141,9 +145,11 @@ export function FuncionarioFicha() {
               </table>
             </>
           )}
-          <p className="px-4 py-3 text-xs text-slate-400">ASOs, treinamentos e eventos eSocial deste vínculo aparecerão aqui nas próximas fases.</p>
         </div>
       ))}
+
+      {aba === 'aso' && <FichaAsos funcionario={d} />}
+      {aba === 'treinamentos' && <FichaTreinamentos funcionarioId={d.id} />}
 
       {aba === 'historico' && (
         <div className="cartao overflow-x-auto">

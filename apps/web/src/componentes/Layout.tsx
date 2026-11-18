@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
-  Building2, ClipboardList, DatabaseBackup, FileSpreadsheet, LayoutDashboard, LogOut, Network, Search, ShieldCheck, UserCog, Users,
+  AlarmClock, Building2, ClipboardList, DatabaseBackup, FileSpreadsheet, GraduationCap, HeartPulse, LayoutDashboard, LogOut, Network,
+  Search, ShieldCheck, Stethoscope, UserCog, Users,
 } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
@@ -21,6 +22,15 @@ const GRUPOS: { titulo: string; itens: Item[] }[] = [
       { para: '/estrutura', rotulo: 'Setores, funções e GHE', icone: <Network size={17} />, permissao: 'estrutura.ler' },
       { para: '/funcionarios', rotulo: 'Funcionários', icone: <Users size={17} />, permissao: 'funcionarios.ler' },
       { para: '/importacoes', rotulo: 'Importar planilha', icone: <FileSpreadsheet size={17} />, permissao: 'funcionarios.importar' },
+    ],
+  },
+  {
+    titulo: 'Saúde e treinamentos',
+    itens: [
+      { para: '/vencimentos', rotulo: 'Vencimentos', icone: <AlarmClock size={17} />, permissao: 'saude.ler' },
+      { para: '/asos', rotulo: 'ASO', icone: <HeartPulse size={17} />, permissao: 'saude.ler' },
+      { para: '/treinamentos', rotulo: 'Treinamentos', icone: <GraduationCap size={17} />, permissao: 'treinamentos.ler' },
+      { para: '/saude/cadastros', rotulo: 'Médicos, clínicas e exames', icone: <Stethoscope size={17} />, permissao: 'saude.ler' },
     ],
   },
   {
