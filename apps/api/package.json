@@ -2,7 +2,8 @@
   "name": "@sst/api",
   "version": "0.1.0",
   "private": true,
-  "main": "dist/main.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -18,6 +19,7 @@
     "@sst/shared": "workspace:*",
     "cookie-parser": "1.4.7",
     "exceljs": "4.4.0",
+    "express": "5.1.0",
     "otplib": "12.0.1",
     "pg": "8.16.3",
     "reflect-metadata": "0.2.2",

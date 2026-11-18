@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'fase-*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  testes:
+    name: Compilar e testar
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: postgres_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - name: Papéis do banco de teste
+        run: |
+          psql -h localhost -U postgres -c "CREATE ROLE sst_owner LOGIN PASSWORD 'dev_owner' CREATEDB"
+          psql -h localhost -U postgres -c "CREATE ROLE sst_app LOGIN PASSWORD 'dev_app'"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @sst/shared build
+      - run: pnpm --filter @sst/api build
+      - run: pnpm typecheck
+      - name: Testes
+        run: pnpm -r test
+      - run: pnpm --filter @sst/web build
+
+  instalador-windows:
+    name: Instalador Windows
+    runs-on: windows-latest
+    needs: testes
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @sst/shared build
+      - run: pnpm --filter @sst/api build
+      - run: pnpm --filter @sst/web build
+      - run: pnpm --filter @sst/desktop dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: controle-sst-instalador-windows
+          path: apps/desktop/release/*.exe
+          retention-days: 30

@@ -1,0 +1,31 @@
+{
+  "name": "@sst/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "echo 'sem testes unitários na interface; ver testes ponta a ponta'"
+  },
+  "dependencies": {
+    "@sst/shared": "workspace:*",
+    "@tanstack/react-query": "5.90.2",
+    "lucide-react": "0.544.0",
+    "qrcode": "1.5.4",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.30.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.1.13",
+    "@types/qrcode": "1.5.5",
+    "@types/react": "18.3.24",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "4.7.0",
+    "tailwindcss": "4.1.13",
+    "typescript": "5.9.3",
+    "vite": "6.3.6"
+  }
+}

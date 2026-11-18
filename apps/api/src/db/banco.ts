@@ -32,6 +32,8 @@ export class Banco {
 
   constructor(connectionString: string) {
     this.pool = new Pool({ connectionString, max: 10 });
+    // Conexões ociosas derrubadas (ex.: banco parado para backup) não podem derrubar o processo.
+    this.pool.on('error', () => {});
   }
 
   /** Executa sem contexto de tenant (apenas funções de autenticação). */

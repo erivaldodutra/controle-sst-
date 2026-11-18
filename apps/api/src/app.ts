@@ -3,6 +3,7 @@ import { INestApplication, Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { AuthController } from './auth/auth.controller';
+import { BackupController, SERVICO_BACKUP, type ServicoBackup } from './backup/backup.controller';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthService } from './auth/auth.service';
 import { BANCO, CONFIG, type Configuracao } from './comum/config';
@@ -25,6 +26,8 @@ export interface OpcoesApp {
   /** Pasta com a interface compilada, servida na raiz (usada pelo aplicativo de desktop). */
   pastaWeb?: string;
   log?: boolean;
+  /** Presente só no aplicativo de desktop. */
+  backup?: ServicoBackup;
 }
 
 export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; banco: Banco }> {
@@ -34,10 +37,12 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
     controllers: [
       AuthController, EmpresasController, EstruturaController, FuncionariosController,
       ImportacaoController, UsuariosController, PainelController,
+      ...(op.backup ? [BackupController] : []),
     ],
     providers: [
       { provide: CONFIG, useValue: op.config },
       { provide: BANCO, useValue: banco },
+      ...(op.backup ? [{ provide: SERVICO_BACKUP, useValue: op.backup }] : []),
       { provide: APP_GUARD, useClass: AuthGuard },
       { provide: APP_FILTER, useClass: FiltroErros },
       AuthService, EmpresasService, EstruturaService, FuncionariosService, ImportacaoService, UsuariosService,
