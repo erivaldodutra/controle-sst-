@@ -8,6 +8,8 @@ export interface ContextoBanco {
   usuarioId: string | null;
   /** '*' = todas as empresas do tenant; senão a lista de IDs permitidos. */
   empresas: '*' | string[];
+  /** Empresas em que pode ver dado clínico (resultado de exame). Ausente = nenhuma. */
+  empresasClinico?: '*' | string[];
   /** Texto livre gravado na auditoria (ex.: "importacao:<id>"). */
   contexto?: string;
 }
@@ -26,6 +28,8 @@ export class Tx {
     return rows[0] ?? null;
   }
 }
+
+const lista = (v?: '*' | string[]) => (v === '*' ? '*' : (v ?? []).join(','));
 
 export class Banco {
   readonly pool: Pool;
@@ -59,8 +63,10 @@ export class Banco {
       await client.query('BEGIN');
       await client.query(
         `SELECT set_config('app.tenant_id', $1, true), set_config('app.usuario_id', $2, true),
-                set_config('app.empresas', $3, true), set_config('app.contexto', $4, true)`,
-        [ctx.tenantId, ctx.usuarioId ?? '', ctx.empresas === '*' ? '*' : ctx.empresas.join(','), ctx.contexto ?? ''],
+                set_config('app.empresas', $3, true), set_config('app.contexto', $4, true),
+                set_config('app.empresas_clinico', $5, true)`,
+        [ctx.tenantId, ctx.usuarioId ?? '', ctx.empresas === '*' ? '*' : ctx.empresas.join(','), ctx.contexto ?? '',
+         lista(ctx.empresasClinico)],
       );
       const r = await fn(new Tx(client));
       await client.query('COMMIT');

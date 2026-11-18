@@ -5,7 +5,7 @@ Roda **no próprio notebook (Windows), sem internet**: banco de dados, arquivos 
 O sistema fica em segundo plano (ícone perto do relógio) e é usado **pelo navegador**, em `http://localhost:8088`.
 A internet só será usada, no futuro, para transmitir ao eSocial e baixar atualizações.
 
-> Situação: **Fase 1** (fundação, autenticação, empresas e funcionários). As próximas fases estão no plano técnico.
+> Situação: **Fase 2** (ASO e treinamentos) sobre a Fase 1 (fundação, empresas e funcionários). As próximas fases estão no plano técnico.
 
 ## O que a Fase 1 entrega
 
@@ -19,7 +19,18 @@ A internet só será usada, no futuro, para transmitir ao eSocial e baixar atual
 | Funcionários | Admissão, readmissão, transferência e mudança de função **sem sobrescrever o histórico**, afastamentos, desligamento, movimentação em lote (tudo ou nada), histórico de alterações por funcionário |
 | Importação | Planilha Excel com modelo, prévia com erros por linha, gravação só após confirmação e em bloco único |
 | Busca e filtros | Seletor de empresa no topo, busca global por nome/CPF/matrícula, filtros por situação, estabelecimento, setor, função e GHE |
-| Backup | Backup completo criptografado (AES-256-GCM, senha própria) feito ao fechar o sistema e sob demanda, cópia para pendrive, restauração verificada antes de substituir os dados |
+| Backup | Backup completo criptografado (AES-256-GCM, senha própria): automático diário ou semanal, ao fechar o sistema e sob demanda; pasta de destino escolhida (pendrive, HD externo), com aviso quando ela não está conectada; restauração pela lista ou por arquivo, verificada antes de substituir os dados |
+
+## O que a Fase 2 entrega
+
+| Área | Funcionalidades |
+| --- | --- |
+| Cadastros de saúde | Médicos (CRM/UF), clínicas, tipos de exame com código da Tabela 27 do eSocial, médico coordenador do PCMSO por empresa com vigência |
+| ASO | Tipos do eSocial (admissional, periódico, retorno, mudança de risco, monitoração pontual, demissional), apto/inapto, riscos do PGR, exames complementares, vencimento, correção, cancelamento com motivo (nunca apaga), anexo do ASO assinado (PDF/JPG/PNG conferido pelo conteúdo), PDF do ASO com os itens da NR-7 |
+| Dado clínico | Resultado de exame complementar fica em tabela própria, visível só para o perfil Médico da empresa, garantido pelo banco (RLS), inclusive no registro de auditoria |
+| Treinamentos | Biblioteca com norma, carga horária e periodicidade; turmas com instrutor, responsável técnico, presença, aprovação e nota; validade calculada e gravada na conclusão; certificado em PDF com código de verificação (itens da NR-1) |
+| Matriz | Treinamentos exigidos por função ou GHE; situação de cada funcionário (em dia, vencendo, vencido, pendente) |
+| Vencimentos | Lista única de pendências de ASO e treinamentos, com prazos de alerta configuráveis (padrão 90/60/30/15 dias), indicadores no painel e abas de ASO e treinamentos na ficha do funcionário |
 
 ## Segurança
 
@@ -44,6 +55,11 @@ O banco é versionado por arquivos SQL em `apps/api/migrations`, aplicados em or
 
 A cada envio ao GitHub, o fluxo **CI** compila, roda os testes e gera o instalador do Windows.
 Baixe em *Actions › CI › execução mais recente › Artifacts › controle-sst-instalador-windows*.
+O instalador sugere a pasta `E:\Controle SST` quando o computador tem unidade E: (pode ser trocada na instalação).
+Instalado fora da unidade do Windows, os dados ficam em `<unidade>:\Controle SST - Dados`, fora da pasta do programa, para não serem
+apagados ao atualizar ou desinstalar. Ao instalar numa unidade diferente da anterior, os dados são copiados para a nova pasta na primeira
+abertura; a pasta antiga é mantida, renomeada com o sufixo `-copiado-<data>`.
+
 O instalador ainda não tem assinatura digital de código; o Windows pode mostrar um aviso do SmartScreen ("Mais informações › Executar assim mesmo").
 
 ## Desenvolvimento

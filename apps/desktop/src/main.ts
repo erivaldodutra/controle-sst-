@@ -1,8 +1,9 @@
-import { app, dialog, Menu, nativeImage, safeStorage, shell, Tray } from 'electron';
-import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { app, BrowserWindow, dialog, Menu, nativeImage, safeStorage, shell, Tray } from 'electron';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { GestorBackup } from './gestorBackup';
 import { ICONE_BANDEJA } from './iconeBandeja';
+import { escolherPastaDados, trazerDadosAnteriores } from './local';
 import { Cofre, Servidor } from './servidor';
 
 /**
@@ -13,7 +14,13 @@ import { Cofre, Servidor } from './servidor';
 const PORTA = 8088;
 const ENDERECO = `http://localhost:${PORTA}`;
 
-const pastaDados = join(app.getPath('userData'), 'dados');
+// Instalado em E:, os dados ficam em "E:\Controle SST - Dados" (ver local.ts).
+const pastaDadosAntiga = join(app.getPath('userData'), 'dados');
+const pastaDados = app.isPackaged
+  ? escolherPastaDados({ programa: process.execPath, padrao: pastaDadosAntiga, unidadeSistema: process.env.SystemDrive, windows: process.platform === 'win32' })
+  : pastaDadosAntiga;
+/** Lembra onde os dados estavam, para achá-los se o programa for reinstalado em outra unidade. */
+const arqLocalDados = join(app.getPath('userData'), 'pasta-dados.txt');
 const pastaLogs = join(app.getPath('userData'), 'logs');
 mkdirSync(pastaLogs, { recursive: true });
 const log = (m: string) => {
@@ -46,11 +53,41 @@ let bandeja: Tray | null = null;
 let saindo = false;
 let pronto = false;
 
+let abrirQuandoPronto = false;
 const abrirNavegador = () => {
   if (pronto) shell.openExternal(ENDERECO);
+  else abrirQuandoPronto = true;
 };
 
-if (!app.requestSingleInstanceLock()) app.quit();
+process.on('uncaughtException', (e) => {
+  log(`Erro inesperado: ${e?.stack ?? e}`);
+  dialog.showErrorBox('Controle SST', `Erro inesperado.\n\n${e?.message ?? e}\n\nDetalhes em: ${pastaLogs}`);
+});
+
+/**
+ * Já existe um Controle SST rodando (talvez de uma versão anterior que não fechou).
+ * Se ele responde, ele mesmo abre o navegador; se não, avisa em vez de sumir sem explicação.
+ */
+async function outraInstancia() {
+  log(`Outra cópia já está rodando; esta (${process.execPath}) será fechada`);
+  // A outra cópia pode estar só terminando de iniciar: espera até 90 segundos.
+  let responde = false;
+  for (let i = 0; i < 18 && !responde; i++) {
+    responde = await fetch(`${ENDERECO}/api/auth/estado`, { signal: AbortSignal.timeout(5000) }).then((r) => r.ok, () => false);
+    if (!responde) await new Promise((ok) => setTimeout(ok, 5000));
+  }
+  if (!responde) {
+    await app.whenReady();
+    dialog.showErrorBox('Controle SST',
+      'O Controle SST já está aberto em segundo plano, mas não está respondendo.\n\n'
+      + 'Reinicie o computador e abra o Controle SST de novo. Se preferir, encerre os processos "Controle SST" e "postgres" '
+      + 'no Gerenciador de Tarefas (Ctrl+Shift+Esc) e abra de novo.');
+  }
+  app.exit(0);
+}
+
+const unica = app.requestSingleInstanceLock();
+if (!unica) void outraInstancia();
 // Abrir o atalho de novo só abre o navegador; o sistema já está rodando.
 app.on('second-instance', abrirNavegador);
 
@@ -59,6 +96,10 @@ function montarMenu() {
   const inicia = app.getLoginItemSettings().openAtLogin;
   bandeja.setContextMenu(Menu.buildFromTemplate([
     { label: pronto ? `Abrir no navegador (${ENDERECO})` : 'Iniciando…', enabled: pronto, click: abrirNavegador },
+    { type: 'separator' },
+    { label: 'Fazer backup agora', enabled: pronto, click: () => void fazerBackupPelaBandeja() },
+    { label: 'Abrir pasta dos backups', enabled: pronto, click: () => gestor && shell.openPath(gestor.config.pasta ?? gestor.pastaPadrao) },
+    { label: 'Abrir pasta dos dados', click: () => shell.openPath(pastaDados) },
     { type: 'separator' },
     {
       label: 'Iniciar junto com o Windows', type: 'checkbox', checked: inicia,
@@ -70,6 +111,33 @@ function montarMenu() {
     { type: 'separator' },
     { label: 'Sair do Controle SST', click: () => app.quit() },
   ]));
+}
+
+/**
+ * As janelas do Windows (escolher pasta/arquivo) são abertas sobre uma janela invisível
+ * "sempre visível", para não ficarem escondidas atrás do navegador.
+ */
+async function naFrente<T>(abrir: (dono: BrowserWindow) => Promise<T>): Promise<T> {
+  const dono = new BrowserWindow({ show: false, alwaysOnTop: true, skipTaskbar: true, width: 1, height: 1 });
+  try {
+    return await abrir(dono);
+  } finally {
+    dono.destroy();
+  }
+}
+
+async function fazerBackupPelaBandeja() {
+  if (!gestor) return;
+  try {
+    if (!servidor?.segredos.senhaBackup) {
+      dialog.showMessageBox({ type: 'info', title: 'Controle SST', message: 'Defina a senha dos backups no sistema (menu Backup) antes do primeiro backup.' });
+      return;
+    }
+    const r = await gestor.criarAgora();
+    bandeja?.displayBalloon({ title: 'Backup criado', content: r.arquivo, iconType: 'info' });
+  } catch (e: any) {
+    dialog.showErrorBox('Controle SST', `Não foi possível fazer o backup.\n\n${e?.message ?? e}`);
+  }
 }
 
 async function iniciar() {
@@ -93,21 +161,37 @@ async function iniciar() {
   }
 
   try {
+    // Traz os dados de onde estavam antes (ex.: C:, versões anteriores) para a pasta atual.
+    let anterior: string | null = null;
+    try {
+      anterior = readFileSync(arqLocalDados, 'utf8').trim() || null;
+    } catch {
+      /* primeira vez */
+    }
+    const veioDe = trazerDadosAnteriores(pastaDados, [anterior, pastaDadosAntiga], log);
+    mkdirSync(pastaDados, { recursive: true });
+    writeFileSync(arqLocalDados, pastaDados);
+    if (veioDe && process.platform === 'win32')
+      bandeja.displayBalloon({ title: 'Dados transferidos', content: `Os dados agora ficam em ${pastaDados}`, iconType: 'info' });
+
     servidor = new Servidor({
       pastaDados, pastaWeb, pastaMigrations, cofre, log, portaApi: PORTA,
       backup: (srv) => (gestor = new GestorBackup(srv, {
-        escolherDestino: async (nome) => (await dialog.showSaveDialog({
+        escolherDestino: (nome) => naFrente(async (w) => (await dialog.showSaveDialog(w, {
           title: 'Salvar cópia do backup', defaultPath: nome, filters: [{ name: 'Backup do Controle SST', extensions: ['sstbak'] }],
-        })).filePath ?? null,
-        escolherArquivo: async () => (await dialog.showOpenDialog({
+        })).filePath || null),
+        escolherArquivo: () => naFrente(async (w) => (await dialog.showOpenDialog(w, {
           title: 'Escolha o backup para restaurar', properties: ['openFile'], filters: [{ name: 'Backup do Controle SST', extensions: ['sstbak'] }],
-        })).filePaths[0] ?? null,
+        })).filePaths[0] ?? null),
+        escolherPasta: () => naFrente(async (w) => (await dialog.showOpenDialog(w, {
+          title: 'Escolha a pasta dos backups (ex.: pendrive ou HD externo)', properties: ['openDirectory', 'createDirectory'],
+        })).filePaths[0] ?? null),
         reiniciar: () => {
           app.relaunch();
           saindo = true;
           app.exit(0);
         },
-      })),
+      }, log)),
     });
     await servidor.iniciar();
     log(`Servidor local em ${servidor.url}`);
@@ -119,15 +203,23 @@ async function iniciar() {
   }
 
   pronto = true;
+  gestor?.iniciarAgendamento();
   montarMenu();
   bandeja.setToolTip(`Controle SST: ${ENDERECO}`);
   // Ao iniciar junto com o Windows fica só na bandeja; aberto pelo usuário, já abre o navegador.
-  if (!app.getLoginItemSettings().wasOpenedAtLogin) abrirNavegador();
+  if (abrirQuandoPronto || !app.getLoginItemSettings().wasOpenedAtLogin) abrirNavegador();
   if (process.platform === 'win32')
     bandeja.displayBalloon({ title: 'Controle SST está rodando', content: `Acesse pelo navegador: ${ENDERECO}`, iconType: 'info' });
 }
 
-app.whenReady().then(iniciar);
+if (unica) {
+  log(`Iniciando versão ${app.getVersion()} em ${process.execPath}; dados em ${pastaDados}`);
+  app.whenReady().then(iniciar).catch((e) => {
+    log(`Falha ao iniciar: ${e?.stack ?? e}`);
+    dialog.showErrorBox('Controle SST', `Não foi possível iniciar o sistema.\n\n${e?.message ?? e}\n\nDetalhes em: ${pastaLogs}`);
+    app.exit(1);
+  });
+}
 
 // Sem janelas próprias: o aplicativo continua na bandeja até o usuário escolher "Sair".
 app.on('window-all-closed', () => {});
@@ -139,7 +231,8 @@ app.on('before-quit', (e) => {
   saindo = true;
   (async () => {
     try {
-      if (gestor && servidor?.segredos.senhaBackup) {
+      gestor?.pararAgendamento();
+      if (gestor && servidor?.segredos.senhaBackup && gestor.config.aoSair) {
         await gestor.criarAgora(false);
         log('Backup automático criado ao sair');
       }

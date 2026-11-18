@@ -41,8 +41,18 @@ export class Usuario {
     if (!this.pode(p, empresaId)) throw new ForbiddenException({ mensagem: 'Você não tem permissão para esta ação' });
   }
 
+  /** Empresas em que o usuário tem a permissão: '*' = todas. */
+  empresasCom(p: Permissao): '*' | string[] {
+    const com = this.atribuicoes.filter((a) => a.permissoes.includes(p));
+    if (com.some((a) => a.empresaId === null)) return '*';
+    return [...new Set(com.map((a) => a.empresaId!))];
+  }
+
   ctx(contexto?: string): ContextoBanco {
-    return { tenantId: this.tenantId, usuarioId: this.id, empresas: this.empresas, contexto };
+    return {
+      tenantId: this.tenantId, usuarioId: this.id, empresas: this.empresas,
+      empresasClinico: this.empresasCom('saude.clinico'), contexto,
+    };
   }
 
   get permissoes(): Permissao[] {

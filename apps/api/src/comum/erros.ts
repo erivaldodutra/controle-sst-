@@ -39,6 +39,13 @@ const UNICOS: Record<string, string> = {
   funcionario_empresa_id_cpf_key: 'Já existe um funcionário com este CPF nesta empresa',
   vinculo_empresa_id_matricula_key: 'Esta matrícula já está em uso nesta empresa',
   usuario_email_uq: 'Já existe um usuário com este e-mail',
+  medico_tenant_id_uf_crm_crm_key: 'Já existe um médico com este CRM nesta UF',
+  clinica_tenant_id_cnpj_key: 'Já existe uma clínica com este CNPJ',
+  exame_tipo_tenant_id_nome_key: 'Já existe um tipo de exame com este nome',
+  aso_exame_aso_id_exame_tipo_id_key: 'Exame repetido no mesmo ASO',
+  treinamento_tenant_id_nome_key: 'Já existe um treinamento com este nome',
+  turma_participante_turma_id_funcionario_id_key: 'Funcionário já está nesta turma',
+  matriz_treinamento_empresa_id_treinamento_id_funcao_id_ghe__key: 'Este treinamento já está na matriz para esta função/GHE',
 };
 
 export function traduzirPg(e: any): { status: number; mensagem: string } | null {

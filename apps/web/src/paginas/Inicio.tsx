@@ -14,6 +14,27 @@ function Indicador({ rotulo, valor, para }: { rotulo: string; valor: number; par
   return para ? <Link to={para}>{corpo}</Link> : corpo;
 }
 
+function PainelVencimentos() {
+  const s = useSessao();
+  const { data } = useQuery({
+    queryKey: ['vencimentos', s.empresaId, ''],
+    queryFn: () => api.get(`/vencimentos${qs({ empresaId: s.empresaId })}`),
+  });
+  if (!data) return null;
+  const n = (t: string, sit: string[]) => sit.reduce((a, x) => a + (data.resumo?.[t]?.[x] ?? 0), 0);
+  return (
+    <>
+      <h2 className="mb-2 mt-6 text-sm font-semibold text-slate-600">Saúde e treinamentos</h2>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {s.pode('saude.ler') && <Indicador rotulo="ASO vencido ou ausente" valor={n('aso', ['vencido', 'sem_aso'])} para="/vencimentos?tipo=aso" />}
+        {s.pode('saude.ler') && <Indicador rotulo="ASO vencendo" valor={n('aso', ['vencendo'])} para="/vencimentos?tipo=aso&situacao=vencendo" />}
+        {s.pode('treinamentos.ler') && <Indicador rotulo="Treinamento vencido ou pendente" valor={n('treinamento', ['vencido', 'pendente'])} para="/vencimentos?tipo=treinamento" />}
+        {s.pode('treinamentos.ler') && <Indicador rotulo="Treinamento vencendo" valor={n('treinamento', ['vencendo'])} para="/vencimentos?tipo=treinamento&situacao=vencendo" />}
+      </div>
+    </>
+  );
+}
+
 export function Inicio() {
   const s = useSessao();
   const { data } = useQuery({
@@ -44,8 +65,9 @@ export function Inicio() {
           <Indicador rotulo="Admissões nos últimos 30 dias" valor={data.admissoes30Dias} />
         </div>
       )}
+      {data && !vazio && (s.pode('saude.ler') || s.pode('treinamentos.ler')) && <PainelVencimentos />}
       <p className="mt-6 text-xs text-slate-500">
-        Os indicadores de ASO, treinamentos, documentos, planos de ação e eSocial aparecem aqui conforme cada módulo for entregue.
+        Os indicadores de documentos, planos de ação e eSocial aparecem aqui conforme cada módulo for entregue.
       </p>
     </>
   );
