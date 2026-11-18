@@ -3,7 +3,7 @@
  * Não depende do Electron, para poder ser testado isoladamente.
  */
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { join } from 'node:path';
 import type EmbeddedPostgres from 'embedded-postgres' with { 'resolution-mode': 'import' };
@@ -27,6 +27,8 @@ export interface Segredos {
 }
 
 export const ARQ_SEGREDOS = 'segredos.bin';
+/** Gravado só depois que o banco foi criado, preparado e migrado pela primeira vez. */
+export const ARQ_PRONTO = 'banco-pronto';
 export const BANCO_NOME = 'sst';
 
 const novaSenha = () => randomBytes(24).toString('base64url');
@@ -60,6 +62,8 @@ export interface OpcoesServidor {
   cofre: Cofre;
   backup?: (srv: Servidor) => ServicoBackup;
   log?: (m: string) => void;
+  /** Porta fixa da interface (para abrir no navegador). Sem ela, usa uma porta livre qualquer. */
+  portaApi?: number;
 }
 
 export class Servidor {
@@ -111,8 +115,34 @@ export class Servidor {
 
   async iniciar() {
     mkdirSync(this.op.pastaDados, { recursive: true });
-    const existentes = lerSegredos(this.op.pastaDados, this.op.cofre);
-    const primeiraVez = !existsSync(join(this.pastaPg, 'PG_VERSION'));
+    const marca = join(this.op.pastaDados, ARQ_PRONTO);
+    let existentes = lerSegredos(this.op.pastaDados, this.op.cofre);
+    let temPg = existsSync(join(this.pastaPg, 'PG_VERSION'));
+
+    if (!existsSync(marca) && (existentes || temPg)) {
+      // Uma primeira execução anterior não terminou (ex.: falhou ao criar o banco).
+      // Se o banco nem chegou a existir, ou não abre, recomeça do zero guardando os restos ao lado.
+      let aproveitavel = false;
+      if (temPg && existentes) {
+        this.segredos = existentes;
+        aproveitavel = await this.iniciarBanco().then(() => true, () => false);
+        if (aproveitavel) aproveitavel = await this.temBancoDoSistema();
+        if (!aproveitavel) await this.pararBanco().catch(() => {});
+      }
+      if (!aproveitavel) {
+        const sufixo = new Date().toISOString().replace(/[:.]/g, '-');
+        this.op.log?.(`Primeira execução incompleta encontrada; recomeçando (restos guardados com sufixo ${sufixo})`);
+        if (existsSync(this.pastaPg)) renameSync(this.pastaPg, `${this.pastaPg}-incompleto-${sufixo}`);
+        const arq = join(this.op.pastaDados, ARQ_SEGREDOS);
+        if (existsSync(arq)) renameSync(arq, `${arq}-incompleto-${sufixo}`);
+        existentes = null;
+        temPg = false;
+        this.pg = undefined;
+        this.portaPg = 0;
+      }
+    }
+
+    const primeiraVez = !temPg;
     if (primeiraVez && existentes) throw new Error('Os dados do banco não foram encontrados, mas há configuração anterior. Restaure um backup.');
     if (!primeiraVez && !existentes) throw new Error('A configuração protegida do banco não foi encontrada. Restaure um backup.');
     this.segredos = existentes ?? {
@@ -126,11 +156,25 @@ export class Servidor {
       await this.pg.initialise();
       await this.pg.start();
       await this.prepararPapeis();
-    } else {
+    } else if (!this.pg) {
       await this.iniciarBanco();
     }
     await migrar(this.urlBanco('sst_owner'), this.op.pastaMigrations, (m) => this.op.log?.(m));
+    if (!existsSync(marca)) writeFileSync(marca, new Date().toISOString());
     await this.iniciarApi();
+  }
+
+  /** O banco do sistema existe e o dono das tabelas consegue entrar nele? */
+  private async temBancoDoSistema(): Promise<boolean> {
+    const c = new Client({ connectionString: this.urlBanco('sst_owner') });
+    try {
+      await c.connect();
+      return true;
+    } catch {
+      return false;
+    } finally {
+      await c.end().catch(() => {});
+    }
   }
 
   /** Cria os papéis: dono das tabelas (migrations) e aplicação (sujeita ao RLS). */
@@ -165,9 +209,18 @@ export class Servidor {
       pastaWeb: this.op.pastaWeb,
       log: false,
       backup: this.op.backup?.(this),
+      hostsPermitidos: this.op.portaApi ? [`localhost:${this.op.portaApi}`, `127.0.0.1:${this.op.portaApi}`] : undefined,
     });
-    const porta = await portaLivre();
-    await app.listen(porta, '127.0.0.1');
+    const porta = this.op.portaApi ?? (await portaLivre());
+    try {
+      await app.listen(porta, '127.0.0.1');
+    } catch (e: any) {
+      await app.close().catch(() => {});
+      await banco.fechar().catch(() => {});
+      if (e?.code === 'EADDRINUSE')
+        throw new Error(`A porta ${porta} já está em uso por outro programa. Feche esse programa e abra o Controle SST de novo.`);
+      throw e;
+    }
     this.url = `http://127.0.0.1:${porta}`;
     this.fecharApi = async () => {
       await app.close();

@@ -28,6 +28,11 @@ export interface OpcoesApp {
   log?: boolean;
   /** Presente só no aplicativo de desktop. */
   backup?: ServicoBackup;
+  /**
+   * Endereços aceitos no cabeçalho Host (ex.: "localhost:8088"). Protege contra
+   * sites que tentam alcançar o servidor local por DNS rebinding.
+   */
+  hostsPermitidos?: string[];
 }
 
 export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; banco: Banco }> {
@@ -56,6 +61,16 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
   const http = app.getHttpAdapter().getInstance();
   http.disable('x-powered-by');
   http.set('trust proxy', false);
+  if (op.hostsPermitidos) {
+    const hosts = new Set(op.hostsPermitidos.map((h) => h.toLowerCase()));
+    http.use((req: any, res: any, next: any) => {
+      if (!hosts.has(String(req.headers.host ?? '').toLowerCase())) {
+        res.status(421).type('text/plain').send('Endereço não permitido');
+        return;
+      }
+      next();
+    });
+  }
   // Cabeçalhos de segurança básicos (o app roda só em 127.0.0.1, sem acesso externo).
   http.use((_req: any, res: any, next: any) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');

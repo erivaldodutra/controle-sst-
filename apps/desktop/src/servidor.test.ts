@@ -3,12 +3,12 @@
  * migrations, API, backup criptografado e restauração.
  * Usa uma pasta temporária, apagada no fim. Nenhum dado real é envolvido.
  */
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { GestorBackup } from './gestorBackup';
-import { Cofre, Servidor } from './servidor';
+import { Cofre, gravarSegredos, Servidor } from './servidor';
 
 const cofre: Cofre = { cifrar: (t) => Buffer.from(t, 'utf8'), decifrar: (b) => b.toString('utf8') };
 const pasta = mkdtempSync(join(tmpdir(), 'sst-desktop-'));
@@ -98,5 +98,28 @@ describe('aplicativo local', () => {
     await chamar('POST', '/auth/login', { email: 'a@teste.local', senha: 'SenhaForte2026' });
     const lista = (await chamar('GET', '/empresas')).corpo;
     expect(lista.map((e: any) => e.razaoSocial)).toEqual(['Antes do backup']);
+  }, 120_000);
+});
+
+describe('primeira execução que não terminou', () => {
+  it('recomeça do zero quando só sobrou a configuração (banco nunca criado)', async () => {
+    const outra = mkdtempSync(join(tmpdir(), 'sst-desktop-incompleto-'));
+    try {
+      // Simula a falha da 1ª instalação: segredos gravados, banco nunca criado.
+      gravarSegredos(outra, cofre, { senhaSuper: 'a', senhaDono: 'b', senhaApp: 'c', chaveDados: Buffer.alloc(32).toString('base64') });
+      const s = new Servidor({ pastaDados: outra, pastaMigrations: migrations, cofre });
+      await s.iniciar();
+      const r = await fetch(s.url + '/api/auth/estado');
+      expect(await r.json()).toEqual({ configurado: false });
+      await s.parar();
+      // Os restos foram guardados ao lado, não apagados.
+      expect(readdirSync(outra).some((n) => n.startsWith('segredos.bin-incompleto-'))).toBe(true);
+      // Segunda abertura normal, já com o banco pronto.
+      const s2 = new Servidor({ pastaDados: outra, pastaMigrations: migrations, cofre });
+      await s2.iniciar();
+      await s2.parar();
+    } finally {
+      rmSync(outra, { recursive: true, force: true });
+    }
   }, 120_000);
 });

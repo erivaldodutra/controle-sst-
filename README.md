@@ -2,6 +2,7 @@
 
 Plataforma de gestão integrada de Saúde e Segurança do Trabalho para consultorias e departamentos de SST.
 Roda **no próprio notebook (Windows), sem internet**: banco de dados, arquivos e regras ficam no computador.
+O sistema fica em segundo plano (ícone perto do relógio) e é usado **pelo navegador**, em `http://localhost:8088`.
 A internet só será usada, no futuro, para transmitir ao eSocial e baixar atualizações.
 
 > Situação: **Fase 1** (fundação, autenticação, empresas e funcionários). As próximas fases estão no plano técnico.
@@ -24,7 +25,8 @@ A internet só será usada, no futuro, para transmitir ao eSocial e baixar atual
 
 - **Isolamento entre empresas no próprio banco** (Row Level Security do PostgreSQL). A aplicação conecta com um usuário sem privilégios que não consegue desligar essas regras. Um teste automático confirma que um usuário de uma empresa não lê nem grava dados de outra.
 - Senhas do banco e a chave de dados são geradas na instalação e protegidas pelo Windows (DPAPI): só o usuário do Windows que instalou consegue lê-las.
-- O banco só aceita conexões do próprio computador (127.0.0.1). Nenhuma porta é aberta para a rede.
+- O banco e a interface só aceitam conexões do próprio computador (127.0.0.1). Nenhuma porta é aberta para a rede.
+- A interface só responde aos endereços `localhost:8088` e `127.0.0.1:8088`, o que impede sites de fora de alcançá-la pelo navegador.
 - Recomenda-se manter o **BitLocker** ativo no notebook.
 
 ## Estrutura do código
@@ -32,7 +34,7 @@ A internet só será usada, no futuro, para transmitir ao eSocial e baixar atual
 ```
 apps/api       API (NestJS) e migrations SQL do banco
 apps/web       Interface (React + Tailwind)
-apps/desktop   Aplicativo Windows (Electron + PostgreSQL 16 embutido + backup)
+apps/desktop   Aplicativo Windows em segundo plano (Electron na bandeja + PostgreSQL 16 embutido + backup)
 packages/shared  Validações (CPF, CNPJ), perfis e permissões compartilhados
 ```
 

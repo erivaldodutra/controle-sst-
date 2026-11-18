@@ -51,10 +51,6 @@
         "to": "migrations"
       }
     ],
-    "asarUnpack": [
-      "**/node_modules/@embedded-postgres/**",
-      "**/node_modules/@node-rs/**"
-    ],
     "win": {
       "target": [
         {
@@ -71,6 +67,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "shortcutName": "Controle SST"
-    }
+    },
+    "asar": false
   }
 }
