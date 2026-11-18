@@ -1,0 +1,76 @@
+{
+  "name": "@sst/desktop",
+  "productName": "Controle SST",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Controle SST - gestão integrada de Saúde e Segurança do Trabalho (uso local)",
+  "author": "Controle SST",
+  "main": "dist-bundle/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "start": "pnpm build && pnpm bundle && electron .",
+    "dist:win": "pnpm build && node empacotar.mjs && electron-builder --projectDir pacote --win --x64 --publish never",
+    "bundle": "node empacotar.mjs --so-bundle"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "2.0.2",
+    "embedded-postgres": "16.15.0-beta.19"
+  },
+  "devDependencies": {
+    "@sst/api": "workspace:*",
+    "@types/node": "22.18.6",
+    "@types/pg": "8.15.5",
+    "electron": "37.4.0",
+    "electron-builder": "26.0.12",
+    "esbuild": "0.25.12",
+    "pg": "8.16.3",
+    "tar": "7.4.3",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  },
+  "build": {
+    "appId": "br.com.controlesst.desktop",
+    "productName": "Controle SST",
+    "directories": {
+      "output": "release",
+      "buildResources": "recursos"
+    },
+    "files": [
+      "dist-bundle/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/dist",
+        "to": "web"
+      },
+      {
+        "from": "../api/migrations",
+        "to": "migrations"
+      }
+    ],
+    "asarUnpack": [
+      "**/node_modules/@embedded-postgres/**",
+      "**/node_modules/@node-rs/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Controle SST"
+    }
+  }
+}

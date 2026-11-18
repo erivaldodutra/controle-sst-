@@ -1,0 +1,15 @@
+packages:
+  - apps/*
+  - packages/*
+onlyBuiltDependencies:
+  - "@node-rs/argon2"
+  - "@swc/core"
+  - "@nestjs/core"
+  - "@tailwindcss/oxide"
+  - "@embedded-postgres/linux-x64"
+  - "@embedded-postgres/windows-x64"
+  - "@embedded-postgres/darwin-arm64"
+  - "@embedded-postgres/darwin-x64"
+  - electron
+  - electron-winstaller
+  - esbuild

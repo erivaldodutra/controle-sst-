@@ -1,0 +1,25 @@
+{
+  "name": "controle-sst",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Plataforma de Gestão Integrada de Saúde e Segurança do Trabalho (uso local, offline)",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm --filter @sst/shared build && pnpm --filter @sst/api build && pnpm --filter @sst/web build && pnpm --filter @sst/desktop build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "dev:api": "pnpm --filter @sst/api dev",
+    "dev:web": "pnpm --filter @sst/web dev",
+    "desktop": "pnpm build && pnpm --filter @sst/desktop exec electron .",
+    "instalador:win": "pnpm build && pnpm --filter @sst/desktop dist:win",
+    "db:migrate": "pnpm --filter @sst/api db:migrate"
+  },
+  "pnpm": {
+    "overrides": {
+      "@electron/node-gyp": "10.2.0-electron.2"
+    }
+  }
+}
