@@ -101,7 +101,8 @@ describe('aplicativo local', () => {
       writeFileSync(join(externa, nome), 'antigo');
       utimesSync(join(externa, nome), new Date(2020, 0, i + 1), new Date(2020, 0, i + 1));
     }
-    await chamar('POST', '/backup/agora');
+    const segundo = (await chamar('POST', '/backup/agora')).corpo.arquivo as string;
+    expect(segundo).not.toBe(criado);
     const nossos = readdirSync(externa).filter((f) => f.startsWith('controle-sst-'));
     expect(nossos).toHaveLength(2);
     expect(nossos.some((f) => f.startsWith('controle-sst-2020'))).toBe(false);

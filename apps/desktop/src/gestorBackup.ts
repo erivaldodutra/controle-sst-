@@ -15,7 +15,7 @@ export const ARQ_CONFIG_BACKUP = 'backup-config.json';
 export const CONFIG_PADRAO: ConfigBackup = { pasta: null, frequencia: 'diario', aoSair: true, manter: 10 };
 const INTERVALO = { diario: 24 * 3600_000, semanal: 7 * 24 * 3600_000 } as const;
 /** Nome dos arquivos criados pelo sistema; só esses entram na limpeza dos antigos. */
-const NOME_AUTOMATICO = /^controle-sst-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.sstbak$/;
+const NOME_AUTOMATICO = /^controle-sst-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}(-\d+)?\.sstbak$/;
 
 const carimbo = () => new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
 const falha = (m: string) => Object.assign(new Error(m), { code: 'P0001' });
@@ -154,7 +154,11 @@ export class GestorBackup implements ServicoBackup {
     const senha = this.srv.segredos.senhaBackup;
     if (!senha) throw falha('Defina a senha dos backups antes de criar um backup');
     return this.exclusivo(async () => {
-      const nome = `controle-sst-${carimbo()}.sstbak`;
+      // Dois backups no mesmo segundo não podem ter o mesmo nome (um apagaria o outro).
+      const base = `controle-sst-${carimbo()}`;
+      const { pasta: pastaFinal } = this.destino();
+      let nome = `${base}.sstbak`;
+      for (let n = 2; existsSync(join(this.pastaPadrao, nome)) || existsSync(join(pastaFinal, nome)); n++) nome = `${base}-${n}.sstbak`;
       const local = join(this.pastaPadrao, nome);
       await this.srv.pararBanco();
       try {
