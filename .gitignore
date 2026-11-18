@@ -1,6 +1,8 @@
 node_modules/
 dist/
 dist-electron/
+dist-bundle/
+apps/desktop/pacote/
 release/
 *.log
 .env
