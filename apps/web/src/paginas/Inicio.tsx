@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, qs } from '../lib/api';
 import { useSessao } from '../lib/sessao';
+import { PainelDocumentos } from '../componentes/PainelDocumentos';
 import { Carregando, Titulo } from '../componentes/ui';
 
 function Indicador({ rotulo, valor, para }: { rotulo: string; valor: number; para?: string }) {
@@ -66,8 +67,9 @@ export function Inicio() {
         </div>
       )}
       {data && !vazio && (s.pode('saude.ler') || s.pode('treinamentos.ler')) && <PainelVencimentos />}
+      {data && !vazio && s.pode('documentos.ler') && <PainelDocumentos />}
       <p className="mt-6 text-xs text-slate-500">
-        Os indicadores de documentos, planos de ação e eSocial aparecem aqui conforme cada módulo for entregue.
+        Os indicadores de planos de ação e eSocial aparecem aqui conforme cada módulo for entregue.
       </p>
     </>
   );
