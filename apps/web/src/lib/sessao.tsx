@@ -45,7 +45,9 @@ export function ProvedorSessao({ eu, children, aoSair }: { eu: Eu; children: Rea
   useEffect(() => {
     if (empresaId && empresas.length && !empresas.some((e: any) => e.id === empresaId)) setEmpresaIdEstado(null);
   }, [empresas, empresaId]);
-  useEffect(() => definirAoExpirar(aoSair), [aoSair]);
+  useEffect(() => {
+    definirAoExpirar(aoSair);
+  }, [aoSair]);
 
   const valor = useMemo<Sessao>(
     () => ({
