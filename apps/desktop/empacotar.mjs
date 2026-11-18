@@ -50,6 +50,7 @@ writeFileSync(resolve(pacote, 'package.json'), JSON.stringify({
     electronVersion: pkg.devDependencies.electron,
     directories: { output: resolve(aqui, 'release'), buildResources: resolve(aqui, 'recursos') },
     extraResources: b.extraResources.map((r) => ({ ...r, from: resolve(aqui, r.from) })),
+    nsis: { ...b.nsis, include: resolve(aqui, 'recursos', 'installer.nsh') },
   },
 }, null, 2));
 execSync('npm install --omit=dev --no-audit --no-fund', { cwd: pacote, stdio: 'inherit' });

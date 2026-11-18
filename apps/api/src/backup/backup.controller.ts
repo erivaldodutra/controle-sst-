@@ -4,15 +4,41 @@ import { z } from 'zod';
 import { validar } from '../comum/validacao';
 import { Requer } from '../auth/decoradores';
 
+const configSchema = z.object({
+  /** Pasta de destino (ex.: pendrive ou HD externo). null = pasta interna, junto dos dados. */
+  pasta: z.string().trim().max(500).nullable(),
+  frequencia: z.enum(['desligado', 'diario', 'semanal']),
+  /** Também fazer backup ao fechar o sistema. */
+  aoSair: z.boolean(),
+  /** Quantos backups automáticos manter em cada pasta. */
+  manter: z.number().int().min(1).max(100),
+});
+export type ConfigBackup = z.infer<typeof configSchema>;
+
+export interface EstadoBackup {
+  senhaConfigurada: boolean;
+  pastaDados: string;
+  pastaPadrao: string;
+  /** Pasta onde o próximo backup será gravado. */
+  pasta: string;
+  aviso: string | null;
+  config: ConfigBackup;
+  proximoAutomatico: string | null;
+  backups: { arquivo: string; pasta: string; caminho: string; criadoEm: string; bytes: number }[];
+}
+
 /** Implementado pelo aplicativo de desktop, que controla o banco embutido e os arquivos. */
 export interface ServicoBackup {
-  estado(): Promise<{ senhaConfigurada: boolean; pasta: string; backups: { arquivo: string; criadoEm: string; bytes: number }[] }>;
+  estado(): Promise<EstadoBackup>;
   definirSenha(senha: string): Promise<void>;
+  configurar(c: ConfigBackup): Promise<ConfigBackup>;
+  /** Abre a janela do Windows para escolher uma pasta (não grava nada). */
+  escolherPasta(): Promise<{ pasta: string | null }>;
   criarAgora(): Promise<{ arquivo: string }>;
   /** Abre a janela "Salvar como" e copia o backup mais recente para o local escolhido. */
   exportar(): Promise<{ arquivo: string | null }>;
-  /** Abre a janela para escolher o arquivo, restaura e reinicia o aplicativo. */
-  restaurar(senha: string): Promise<{ restaurado: boolean }>;
+  /** Restaura um backup da lista (caminho) ou um escolhido na janela do Windows, e reinicia o aplicativo. */
+  restaurar(senha: string, caminho?: string): Promise<{ restaurado: boolean }>;
 }
 export const SERVICO_BACKUP = Symbol('SERVICO_BACKUP');
 
@@ -33,6 +59,18 @@ export class BackupController {
     return { ok: true };
   }
 
+  @Post('configuracao')
+  @Requer('backup.gerenciar')
+  configurar(@Body() body: unknown) {
+    return this.svc.configurar(validar(configSchema, body));
+  }
+
+  @Post('escolha-de-pasta')
+  @Requer('backup.gerenciar')
+  escolherPasta() {
+    return this.svc.escolherPasta();
+  }
+
   @Post('agora')
   @Requer('backup.gerenciar')
   agora() {
@@ -48,6 +86,7 @@ export class BackupController {
   @Post('restauracao')
   @Requer('backup.gerenciar')
   restaurar(@Body() body: unknown) {
-    return this.svc.restaurar(validar(z.object({ senha: z.string().min(1) }), body).senha);
+    const b = validar(z.object({ senha: z.string().min(1), caminho: z.string().min(1).max(1000).optional() }), body);
+    return this.svc.restaurar(b.senha, b.caminho);
   }
 }

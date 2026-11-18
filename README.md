@@ -19,7 +19,7 @@ A internet só será usada, no futuro, para transmitir ao eSocial e baixar atual
 | Funcionários | Admissão, readmissão, transferência e mudança de função **sem sobrescrever o histórico**, afastamentos, desligamento, movimentação em lote (tudo ou nada), histórico de alterações por funcionário |
 | Importação | Planilha Excel com modelo, prévia com erros por linha, gravação só após confirmação e em bloco único |
 | Busca e filtros | Seletor de empresa no topo, busca global por nome/CPF/matrícula, filtros por situação, estabelecimento, setor, função e GHE |
-| Backup | Backup completo criptografado (AES-256-GCM, senha própria) feito ao fechar o sistema e sob demanda, cópia para pendrive, restauração verificada antes de substituir os dados |
+| Backup | Backup completo criptografado (AES-256-GCM, senha própria): automático diário ou semanal, ao fechar o sistema e sob demanda; pasta de destino escolhida (pendrive, HD externo), com aviso quando ela não está conectada; restauração pela lista ou por arquivo, verificada antes de substituir os dados |
 
 ## O que a Fase 2 entrega
 
@@ -55,6 +55,11 @@ O banco é versionado por arquivos SQL em `apps/api/migrations`, aplicados em or
 
 A cada envio ao GitHub, o fluxo **CI** compila, roda os testes e gera o instalador do Windows.
 Baixe em *Actions › CI › execução mais recente › Artifacts › controle-sst-instalador-windows*.
+O instalador sugere a pasta `E:\Controle SST` quando o computador tem unidade E: (pode ser trocada na instalação).
+Instalado fora da unidade do Windows, os dados ficam em `<unidade>:\Controle SST - Dados`, fora da pasta do programa, para não serem
+apagados ao atualizar ou desinstalar. Ao instalar numa unidade diferente da anterior, os dados são copiados para a nova pasta na primeira
+abertura; a pasta antiga é mantida, renomeada com o sufixo `-copiado-<data>`.
+
 O instalador ainda não tem assinatura digital de código; o Windows pode mostrar um aviso do SmartScreen ("Mais informações › Executar assim mesmo").
 
 ## Desenvolvimento
