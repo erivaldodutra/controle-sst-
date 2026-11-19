@@ -32,6 +32,7 @@ import { Indicadores } from './paginas/Indicadores';
 import { Calendario } from './paginas/Calendario';
 import { Relatorios } from './paginas/Relatorios';
 import { RegrasAlerta } from './paginas/RegrasAlerta';
+import { Seguranca } from './paginas/Seguranca';
 import { AssistenteIa } from './paginas/AssistenteIa';
 import { Inspecoes } from './paginas/Inspecoes';
 import { Ocorrencia } from './paginas/Ocorrencia';
@@ -108,6 +109,7 @@ function App() {
             <Route path="/calendario" element={<Calendario />} />
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/alertas" element={<RegrasAlerta />} />
+            <Route path="/seguranca" element={<Seguranca />} />
             <Route path="/ia" element={<AssistenteIa />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/auditoria" element={<Auditoria />} />

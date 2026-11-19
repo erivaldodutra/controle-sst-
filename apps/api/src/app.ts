@@ -41,6 +41,8 @@ import { IndicadoresService } from './painel/indicadores.service';
 import { RelatoriosService } from './painel/relatorios.service';
 import { IaController } from './ia/ia.controller';
 import { IaService } from './ia/ia.service';
+import { RetencaoService } from './seguranca/retencao.service';
+import { SegurancaController } from './seguranca/seguranca.controller';
 
 export interface OpcoesApp {
   config: Configuracao;
@@ -64,7 +66,7 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
       AuthController, EmpresasController, EstruturaController, FuncionariosController,
       ImportacaoController, UsuariosController, PainelController, SaudeController, TreinamentosController,
       DocumentosController, AcoesController, InspecoesController, ConformidadeController, EsocialController,
-      AlertasController, IaController,
+      AlertasController, IaController, SegurancaController,
       ...(op.backup ? [BackupController] : []),
     ],
     providers: [
@@ -76,7 +78,7 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
       AuthService, EmpresasService, EstruturaService, FuncionariosService, ImportacaoService, UsuariosService,
       CadastrosSaudeService, AsoService, VencimentosService, TreinamentosService, DocumentosService,
       AcoesService, InspecoesService, ConformidadeService, EsocialService, CadastrosEsocialService,
-      CalendarioService, IndicadoresService, RelatoriosService, IaService,
+      CalendarioService, IndicadoresService, RelatoriosService, IaService, RetencaoService,
     ],
   })
   class AppModule {}
@@ -102,7 +104,13 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy',
+      "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+    // Dados da API nunca ficam no cache do navegador (computador pode ser compartilhado).
+    if (String(_req.path ?? _req.url).startsWith('/api')) res.setHeader('Cache-Control', 'no-store');
     next();
   });
   // Proteção CSRF: mutações só com cabeçalho próprio (navegador não envia em formulário de outro site).

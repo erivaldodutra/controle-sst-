@@ -78,7 +78,7 @@ export class AuthService {
     return token;
   }
 
-  async usuarioDaSessao(token: string): Promise<Usuario | null> {
+  async usuarioDaSessao(token: string, registrarUso = true): Promise<Usuario | null> {
     const s = await this.banco.semContexto((tx) => tx.one('SELECT * FROM app.sessao_buscar($1)', [sha256(token)]));
     if (!s) return null;
     return this.banco.tx({ tenantId: s.tenant_id, usuarioId: s.usuario_id, empresas: [] }, async (tx) => {
@@ -92,7 +92,7 @@ export class AuthService {
           GROUP BY p.codigo, a.empresa_id`,
         [s.usuario_id],
       );
-      await tx.query('UPDATE sessao SET ultimo_uso_em = now() WHERE id = $1 AND ultimo_uso_em < now() - interval \'1 minute\'', [s.sessao_id]);
+      if (registrarUso) await tx.query('UPDATE sessao SET ultimo_uso_em = now() WHERE id = $1 AND ultimo_uso_em < now() - interval \'1 minute\'', [s.sessao_id]);
       const atrib: Atribuicao[] = rows.map((r) => ({ perfil: r.codigo, empresaId: r.empresa_id, permissoes: r.permissoes as Permissao[] }));
       return new Usuario(u.id, s.tenant_id, u.nome, u.email, s.sessao_id, u.deve_trocar_senha, atrib);
     });

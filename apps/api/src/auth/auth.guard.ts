@@ -18,7 +18,9 @@ export class AuthGuard implements CanActivate {
     if (this.reflector.getAllAndOverride<boolean>(PUBLICA, alvo)) return true;
     const req = ctx.switchToHttp().getRequest();
     const token = req.cookies?.[COOKIE_SESSAO];
-    const usuario = token ? await this.auth.usuarioDaSessao(token) : null;
+    // Consultas automáticas (ex.: o sino de avisos) não contam como uso: a sessão cai por inatividade mesmo com a tela aberta.
+    const fundo = req.get?.('x-sst-fundo') === '1';
+    const usuario = token ? await this.auth.usuarioDaSessao(token, !fundo) : null;
     if (!usuario) throw new UnauthorizedException({ mensagem: 'Sessão expirada. Entre novamente.' });
     if (usuario.deveTrocarSenha && !LIBERADAS_TROCA_SENHA.includes(req.path))
       throw new ForbiddenException({ mensagem: 'Troque sua senha temporária para continuar', trocarSenha: true });

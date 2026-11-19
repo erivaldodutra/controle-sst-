@@ -10,12 +10,12 @@ export class ErroApi extends Error {
 let aoExpirar: (() => void) | null = null;
 export const definirAoExpirar = (fn: () => void) => (aoExpirar = fn);
 
-async function req<T>(metodo: string, url: string, corpo?: unknown): Promise<T> {
+async function req<T>(metodo: string, url: string, corpo?: unknown, fundo = false): Promise<T> {
   const ehForm = corpo instanceof FormData;
   const r = await fetch(`/api${url}`, {
     method: metodo,
     credentials: 'same-origin',
-    headers: { 'x-sst': '1', ...(corpo && !ehForm ? { 'Content-Type': 'application/json' } : {}) },
+    headers: { 'x-sst': '1', ...(fundo ? { 'x-sst-fundo': '1' } : {}), ...(corpo && !ehForm ? { 'Content-Type': 'application/json' } : {}) },
     body: corpo === undefined ? undefined : ehForm ? corpo : JSON.stringify(corpo),
   });
   const tipo = r.headers.get('content-type') ?? '';
@@ -29,6 +29,8 @@ async function req<T>(metodo: string, url: string, corpo?: unknown): Promise<T> 
 
 export const api = {
   get: <T = any>(u: string) => req<T>('GET', u),
+  /** Consulta automática: não conta como uso, então não impede o encerramento da sessão por inatividade. */
+  fundo: <T = any>(u: string) => req<T>('GET', u, undefined, true),
   post: <T = any>(u: string, b?: unknown) => req<T>('POST', u, b ?? {}),
   put: <T = any>(u: string, b: unknown) => req<T>('PUT', u, b),
   patch: <T = any>(u: string, b: unknown) => req<T>('PATCH', u, b),

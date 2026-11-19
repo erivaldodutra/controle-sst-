@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlarmClock, BarChart3, Bell, BellRing, Bot, Building2, CalendarDays, ClipboardList, FileBarChart, SlidersHorizontal, DatabaseBackup, FileSpreadsheet, GraduationCap, HeartPulse, LayoutDashboard, LogOut, Network,
   Biohazard, ClipboardCheck, FileText, Inbox, KeyRound, ListTodo, Scale, Search, Send, ShieldCheck, Stethoscope, UserCog, Users,
+  Lock,
 } from 'lucide-react';
 import { ChevronsUpDown, Menu as MenuIcone, X } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -77,6 +78,7 @@ const GRUPOS: { titulo: string; itens: Item[] }[] = [
       { para: '/alertas', rotulo: 'Regras de alerta', icone: <SlidersHorizontal size={17} />, permissao: 'empresas.ler' },
       { para: '/usuarios', rotulo: 'Usuários e perfis', icone: <UserCog size={17} />, permissao: 'usuarios.gerenciar' },
       { para: '/auditoria', rotulo: 'Auditoria', icone: <ClipboardList size={17} />, permissao: 'auditoria.ler' },
+      { para: '/seguranca', rotulo: 'Segurança e retenção', icone: <Lock size={17} />, permissao: 'sistema.configurar' },
       { para: '/backup', rotulo: 'Backup', icone: <DatabaseBackup size={17} />, permissao: 'backup.gerenciar' },
     ],
   },
@@ -277,7 +279,7 @@ function Notificacoes() {
   const nav = useNavigate();
   const { data } = useQuery({
     queryKey: ['notificacoes'],
-    queryFn: () => api.get('/notificacoes'),
+    queryFn: () => api.fundo('/notificacoes'),
     refetchInterval: 5 * 60_000,
   });
   useEffect(() => {
