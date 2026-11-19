@@ -20,7 +20,7 @@ const SEGMENTOS = [
 ];
 
 /** Barra empilhada com a situação de um tipo de controle (ASO ou treinamentos), com números reais do resumo. */
-function BarraSituacao({ titulo, resumo, para }: { titulo: string; resumo: Record<string, number> | undefined; para: string }) {
+export function BarraSituacao({ titulo, resumo, para }: { titulo: string; resumo: Record<string, number> | undefined; para: string }) {
   const segs = SEGMENTOS.map((g) => ({ ...g, n: resumo?.[g.chave] ?? 0 })).filter((g) => g.n > 0);
   const total = segs.reduce((a, g) => a + g.n, 0);
   const emDia = resumo?.em_dia ?? 0;

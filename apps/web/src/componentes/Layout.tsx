@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  AlarmClock, Building2, ClipboardList, DatabaseBackup, FileSpreadsheet, GraduationCap, HeartPulse, LayoutDashboard, LogOut, Network,
+  AlarmClock, BarChart3, Bell, BellRing, Bot, Building2, CalendarDays, ClipboardList, FileBarChart, SlidersHorizontal, DatabaseBackup, FileSpreadsheet, GraduationCap, HeartPulse, LayoutDashboard, LogOut, Network,
   Biohazard, ClipboardCheck, FileText, Inbox, KeyRound, ListTodo, Scale, Search, Send, ShieldCheck, Stethoscope, UserCog, Users,
 } from 'lucide-react';
 import { ChevronsUpDown, Menu as MenuIcone, X } from 'lucide-react';
@@ -15,7 +15,14 @@ interface Item { para: string; rotulo: string; icone: ReactNode; permissao: Perm
 
 /** Só aparecem módulos já implementados; os demais entram no menu na fase em que forem entregues. */
 const GRUPOS: { titulo: string; itens: Item[] }[] = [
-  { titulo: 'Painel', itens: [{ para: '/', rotulo: 'Início', icone: <LayoutDashboard size={17} />, permissao: 'empresas.ler' }] },
+  {
+    titulo: 'Painel',
+    itens: [
+      { para: '/', rotulo: 'Início', icone: <LayoutDashboard size={17} />, permissao: 'empresas.ler' },
+      { para: '/indicadores', rotulo: 'Indicadores', icone: <BarChart3 size={17} />, permissao: 'empresas.ler' },
+      { para: '/calendario', rotulo: 'Calendário de obrigações', icone: <CalendarDays size={17} />, permissao: 'empresas.ler' },
+    ],
+  },
   {
     titulo: 'Cadastros',
     itens: [
@@ -58,8 +65,16 @@ const GRUPOS: { titulo: string; itens: Item[] }[] = [
     ],
   },
   {
+    titulo: 'Relatórios',
+    itens: [
+      { para: '/relatorios', rotulo: 'Central de relatórios', icone: <FileBarChart size={17} />, permissao: 'empresas.ler' },
+      { para: '/ia', rotulo: 'Assistente de IA', icone: <Bot size={17} />, permissao: 'empresas.ler' },
+    ],
+  },
+  {
     titulo: 'Administração',
     itens: [
+      { para: '/alertas', rotulo: 'Regras de alerta', icone: <SlidersHorizontal size={17} />, permissao: 'empresas.ler' },
       { para: '/usuarios', rotulo: 'Usuários e perfis', icone: <UserCog size={17} />, permissao: 'usuarios.gerenciar' },
       { para: '/auditoria', rotulo: 'Auditoria', icone: <ClipboardList size={17} />, permissao: 'auditoria.ler' },
       { para: '/backup', rotulo: 'Backup', icone: <DatabaseBackup size={17} />, permissao: 'backup.gerenciar' },
@@ -185,6 +200,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <ChevronsUpDown size={15} className="pointer-events-none absolute right-3 top-3 text-slate-400" />
           </div>
           <BuscaGlobal />
+          <Notificacoes />
         </header>
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>
@@ -247,6 +263,66 @@ function BuscaGlobal() {
               <div className="text-xs text-slate-500">Empresa</div>
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Sino do topo: avisos de prazos atrasados ou próximos, gerados dos módulos e só do próprio usuário. */
+function Notificacoes() {
+  const [aberto, setAberto] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const qc = useQueryClient();
+  const nav = useNavigate();
+  const { data } = useQuery({
+    queryKey: ['notificacoes'],
+    queryFn: () => api.get('/notificacoes'),
+    refetchInterval: 5 * 60_000,
+  });
+  useEffect(() => {
+    const f = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setAberto(false);
+    document.addEventListener('mousedown', f);
+    return () => document.removeEventListener('mousedown', f);
+  }, []);
+  const ler = async (id: string | 'todas') => {
+    await api.post(id === 'todas' ? '/notificacoes/lidas' : `/notificacoes/${id}/lida`);
+    qc.invalidateQueries({ queryKey: ['notificacoes'] });
+  };
+  const n = data?.naoLidas ?? 0;
+  return (
+    <div ref={ref} className="relative">
+      <button className="btn-secundario relative px-2.5" onClick={() => setAberto(!aberto)} aria-label={`Notificações: ${n} não lida(s)`} aria-expanded={aberto}>
+        {n > 0 ? <BellRing size={18} /> : <Bell size={18} />}
+        {n > 0 && <span className="absolute -right-1.5 -top-1.5 min-w-5 rounded-full bg-red-600 px-1 text-center text-[11px] font-semibold leading-5 text-white tabular-nums">{n > 99 ? '99+' : n}</span>}
+      </button>
+      {aberto && (
+        <div className="absolute right-0 top-12 z-30 w-[min(26rem,calc(100vw-2rem))] animate-surgir overflow-hidden rounded-xl border border-slate-200 bg-white text-sm shadow-elevado">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
+            <span className="font-semibold">Avisos de prazos</span>
+            {n > 0 && <button className="text-xs font-medium text-marca-700 hover:underline" onClick={() => ler('todas')}>Marcar todos como lidos</button>}
+          </div>
+          <div className="max-h-96 overflow-y-auto">
+            {!data?.itens.length && <div className="px-4 py-8 text-center text-slate-500">Nenhum aviso novo.</div>}
+            {data?.itens.map((i: any) => (
+              <div key={i.id} className="flex items-start gap-3 border-b border-slate-50 px-4 py-2.5 hover:bg-slate-50">
+                <span className={`mt-1.5 size-2 shrink-0 rounded-full ${i.estado === 'atrasado' ? 'bg-red-500' : 'bg-amber-400'}`} />
+                <button className="min-w-0 flex-1 text-left" onClick={() => { setAberto(false); ler(i.id); if (i.link) nav(i.link); }}>
+                  <div className="font-medium text-tinta">{i.titulo}</div>
+                  <div className="text-xs text-slate-500">
+                    {i.estado === 'atrasado' ? 'Atrasado' : 'Vence'} em {i.data?.split('-').reverse().join('/')} · {data.categorias[i.categoria]}{i.empresa ? ` · ${i.empresa}` : ''}
+                  </div>
+                </button>
+                <button className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700" title="Marcar como lido" aria-label="Marcar como lido" onClick={() => ler(i.id)}>
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between border-t border-slate-100 px-4 py-2 text-xs">
+            <Link to="/calendario" className="font-medium text-marca-700 hover:underline" onClick={() => setAberto(false)}>Ver calendário</Link>
+            <Link to="/alertas" className="text-slate-500 hover:text-tinta" onClick={() => setAberto(false)}>Escolher avisos</Link>
+          </div>
         </div>
       )}
     </div>

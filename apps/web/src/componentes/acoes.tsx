@@ -64,13 +64,15 @@ export interface OrigemFixa {
 }
 
 /** Formulário de ação nova (com origem livre ou já vinculada). */
-export function FormAcao({ empresaId, fixa, aoSalvar }: { empresaId: string; fixa?: OrigemFixa; aoSalvar: (a: any) => void }) {
+export function FormAcao({ empresaId, fixa, inicial, aoSalvar }: {
+  empresaId: string; fixa?: OrigemFixa; inicial?: { descricao?: string; prioridade?: string }; aoSalvar: (a: any) => void;
+}) {
   const ests = useEstabelecimentos(empresaId);
   const setores = useEstrutura(empresaId, 'setores');
   const ghes = useEstrutura(empresaId, 'ghes');
   const [d, setD] = useState<any>({
-    origem: fixa?.origem ?? '', tipo: 'introduzir', prioridade: 'media', dataAbertura: hojeIso(), exigeEvidencia: true,
-    estabelecimentoId: fixa?.estabelecimentoId ?? '', setorId: fixa?.setorId ?? '', descricao: fixa?.descricao ?? '',
+    origem: fixa?.origem ?? '', tipo: 'introduzir', prioridade: inicial?.prioridade ?? 'media', dataAbertura: hojeIso(), exigeEvidencia: true,
+    estabelecimentoId: fixa?.estabelecimentoId ?? '', setorId: fixa?.setorId ?? '', descricao: fixa?.descricao ?? inicial?.descricao ?? '',
   });
   const set = (k: string) => (e: any) => setD({ ...d, [k]: e.target.value });
   const setoresEst = (setores.data ?? []).filter((x: any) => !d.estabelecimentoId || x.estabelecimentoId === d.estabelecimentoId);
