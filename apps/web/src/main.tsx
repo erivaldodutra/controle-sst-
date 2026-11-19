@@ -30,6 +30,11 @@ import { Conformidade } from './paginas/Conformidade';
 import { Inspecao } from './paginas/Inspecao';
 import { Inspecoes } from './paginas/Inspecoes';
 import { Ocorrencia } from './paginas/Ocorrencia';
+import { Esocial } from './paginas/Esocial';
+import { EsocialEvento } from './paginas/EsocialEvento';
+import { EsocialLotes } from './paginas/EsocialLotes';
+import { EsocialConfig } from './paginas/EsocialConfig';
+import { AgentesNocivos } from './paginas/AgentesNocivos';
 import './estilo.css';
 
 const qc = new QueryClient({
@@ -89,6 +94,11 @@ function App() {
             <Route path="/inspecoes/:id" element={<Inspecao />} />
             <Route path="/ocorrencias/:id" element={<Ocorrencia />} />
             <Route path="/conformidade" element={<Conformidade />} />
+            <Route path="/esocial" element={<Esocial />} />
+            <Route path="/esocial/eventos/:id" element={<EsocialEvento />} />
+            <Route path="/esocial/lotes" element={<EsocialLotes />} />
+            <Route path="/esocial/agentes" element={<AgentesNocivos />} />
+            <Route path="/esocial/config" element={<EsocialConfig />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/auditoria" element={<Auditoria />} />
             <Route path="/backup" element={<Backup />} />
