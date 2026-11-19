@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { api, qs } from '../lib/api';
 import { useSessao } from '../lib/sessao';
 import { PainelDocumentos } from '../componentes/PainelDocumentos';
+import { PainelAcoes } from '../componentes/PainelAcoes';
 import { Indicador } from '../componentes/Indicador';
 import { Carregando, Titulo } from '../componentes/ui';
 
@@ -113,8 +114,9 @@ export function Inicio() {
       )}
       {data && !vazio && (s.pode('saude.ler') || s.pode('treinamentos.ler')) && <PainelVencimentos />}
       {data && !vazio && s.pode('documentos.ler') && <PainelDocumentos />}
+      {data && !vazio && (s.pode('acoes.ler') || s.pode('conformidade.ler')) && <PainelAcoes />}
       <p className="mt-8 text-xs text-slate-400">
-        Os indicadores de planos de ação e eSocial aparecem aqui conforme cada módulo for entregue.
+        Os indicadores do eSocial aparecem aqui quando o módulo for entregue.
       </p>
     </>
   );

@@ -5,7 +5,7 @@ Roda **no próprio notebook (Windows), sem internet**: banco de dados, arquivos 
 O sistema fica em segundo plano (ícone perto do relógio) e é usado **pelo navegador**, em `http://localhost:8088`.
 A internet só será usada, no futuro, para transmitir ao eSocial e baixar atualizações.
 
-> Situação: **Fase 3** (programas legais e documentos) sobre as Fases 1 (fundação, empresas e funcionários) e 2 (ASO e treinamentos). As próximas fases estão no plano técnico.
+> Situação: **Fase 4** (planos de ação e conformidade) sobre as Fases 1 (fundação, empresas e funcionários), 2 (ASO e treinamentos) e 3 (programas legais e documentos). As próximas fases estão no plano técnico.
 
 ## O que a Fase 1 entrega
 
@@ -20,6 +20,20 @@ A internet só será usada, no futuro, para transmitir ao eSocial e baixar atual
 | Importação | Planilha Excel com modelo, prévia com erros por linha, gravação só após confirmação e em bloco único |
 | Busca e filtros | Seletor de empresa no topo, busca global por nome/CPF/matrícula, filtros por situação, estabelecimento, setor, função e GHE |
 | Backup | Backup completo criptografado (AES-256-GCM, senha própria): automático diário ou semanal, ao fechar o sistema e sob demanda; pasta de destino escolhida (pendrive, HD externo), com aviso quando ela não está conectada; restauração pela lista ou por arquivo, verificada antes de substituir os dados |
+
+## O que a Fase 4 entrega
+
+| Área | Funcionalidades |
+| --- | --- |
+| Planos de ação | Código sequencial (AC-AAAA-NNNN), origem (PGR, PGRTR, PCMSO, AEP, AET, PCA, PPR, CIPA, inspeção, auditoria, acidente, investigação, recomendação técnica, matriz de conformidade), perigo, medida (introduzir, aprimorar, manter), prioridade, responsável, validador, recursos e forma de acompanhamento, por empresa, estabelecimento, setor ou GHE |
+| Fluxo da ação | Não iniciada, em andamento, aguardando evidência, em validação, concluída ou cancelada. Só vai para validação com evidência anexada (ou dispensa com justificativa técnica), regra garantida pelo banco. Concluir, devolver e cancelar exigem a permissão de validação; ação concluída ou cancelada não muda mais |
+| Prazos | Prazo inicial preservado; reprogramação só com justificativa, registrada no histórico. Ações atrasadas e com prazo próximo destacadas |
+| Evidências e histórico | Foto, documento, certificado, lista de presença ou comprovante (PDF/JPG/PNG até 50 MB). Evidências e histórico só recebem inclusões: o banco não deixa alterar nem apagar |
+| Inspeções | Inspeções de rotina, CIPA, auditoria ou específicas, com itens conforme, não conforme ou não aplicável; ação gerada direto do item não conforme |
+| Ocorrências | Acidente típico, de trajeto, doença ocupacional, incidente e quase acidente, com gravidade, envolvido e medidas imediatas. Encerrar exige investigação concluída. A CAT e o S-2210 ficam para a fase do eSocial: nada é transmitido |
+| Matriz de conformidade | Requisitos legais (gerados dos tipos de documento ou cadastrados), aplicabilidade decidida pelo profissional em cada empresa ou estabelecimento, com justificativa obrigatória para "não aplicável". Critérios opcionais (grau de risco, CNAE, número de empregados) só geram uma sugestão. Requisito ligado a documento segue a situação do documento; os demais seguem a avaliação registrada. Percentual de atendimento conta só os aplicáveis avaliados |
+| Visão por empresa | Todas as empresas classificadas em regulares, com pendências, com prazos próximos e com vencidos ou atrasos |
+| Painel | Ações abertas, atrasadas, com prazo próximo e aguardando validação; requisitos não conformes e a avaliar |
 
 ## O que a Fase 3 entrega
 
