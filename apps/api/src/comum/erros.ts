@@ -49,6 +49,9 @@ const UNICOS: Record<string, string> = {
   documento_tipo_tenant_id_nome_key: 'Já existe um tipo de documento com este nome',
   documento_versao_uma_vigente: 'Este documento já tem uma versão vigente',
   documento_versao_um_rascunho: 'Já existe uma versão em elaboração ou revisão deste documento',
+  requisito_tenant_id_titulo_key: 'Já existe um requisito com este título',
+  conformidade_empresa_id_estabelecimento_id_requisito_id_key: 'Este requisito já foi avaliado para esta empresa ou estabelecimento',
+  inspecao_item_inspecao_id_ordem_key: 'Item repetido na inspeção; tente de novo',
 };
 
 export function traduzirPg(e: any): { status: number; mensagem: string } | null {

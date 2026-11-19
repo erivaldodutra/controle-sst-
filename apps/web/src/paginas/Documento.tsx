@@ -11,6 +11,9 @@ import { Formulario } from '../componentes/saude';
 import { Aviso, Campo, Carregando, Modal, Titulo, Vazio } from '../componentes/ui';
 import { CamposPrazos, corpoPrazos } from './Documentos';
 import { useEstabelecimentos } from './Estrutura';
+import { ORIGENS_ACAO } from '@sst/shared';
+import { useNavigate } from 'react-router-dom';
+import { AcoesLigadas, FormAcao } from '../componentes/acoes';
 
 type Janela = null | 'dados' | 'aplicabilidade' | 'mudanca' | 'substituir' | 'acompanhamento' | { versao: any | null } | { cancelar: any };
 
@@ -331,6 +334,30 @@ export function Documento() {
           </Formulario>
         )}
       </Modal>
+      {s.pode('acoes.ler') && <AcoesDoDocumento doc={doc} />}
     </>
+  );
+}
+
+/** Ações do plano de ação ligadas a este documento (ex.: medidas do PGR ou recomendações do laudo). */
+function AcoesDoDocumento({ doc }: { doc: any }) {
+  const s = useSessao();
+  const nav = useNavigate();
+  const [nova, setNova] = useState(false);
+  const q = useQuery({ queryKey: ['acoes', 'documento', doc.id], queryFn: () => api.get(`/acoes${qs({ documentoId: doc.id })}`) });
+  const sigla = String(doc.tipoSigla ?? '').toLowerCase();
+  const origem = (sigla in ORIGENS_ACAO ? sigla : 'recomendacao') as keyof typeof ORIGENS_ACAO;
+  return (
+    <section className="cartao mt-4 overflow-x-auto p-5">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold">Plano de ação deste documento</h2>
+        {s.pode('acoes.editar') && <button className="btn-secundario" onClick={() => setNova(true)}><Plus size={15} /> Nova ação</button>}
+      </div>
+      {q.data && <AcoesLigadas acoes={q.data.itens} aoAbrir={(id) => nav(`/acoes/${id}`)} />}
+      <Modal titulo="Nova ação" aberto={nova} aoFechar={() => setNova(false)}>
+        {nova && <FormAcao empresaId={doc.empresaId} fixa={{ origem, rotulo: `${ORIGENS_ACAO[origem]} · ${doc.identificacao}`, documentoId: doc.id,
+          estabelecimentoId: doc.estabelecimentoId }} aoSalvar={(a) => nav(`/acoes/${a.id}`)} />}
+      </Modal>
+    </section>
   );
 }

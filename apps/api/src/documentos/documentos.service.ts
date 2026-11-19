@@ -144,6 +144,18 @@ export class DocumentosService {
     return { ...d, ...s, proximoPrazo: proximo };
   }
 
+  /**
+   * Situação dos documentos das empresas indicadas, dentro de uma transação já aberta
+   * (usada pela matriz de conformidade). O RLS da transação continua valendo.
+   */
+  async situacoesTx(tx: Tx, empresaIds: string[]) {
+    const ref = await this.referencia(tx);
+    const linhas = await tx.query(`${SELECT_DOC} WHERE d.empresa_id = ANY($1::uuid[])`, [empresaIds]);
+    return linhas.map((d) => this.comSituacao(d, ref)) as {
+      id: string; empresaId: string; estabelecimentoId: string | null; tipoId: string; situacao: SituacaoDocumento;
+    }[];
+  }
+
   private restricao(u: Usuario, params: unknown[], cond: string[]) {
     const permitidas = u.empresasCom('documentos.ler');
     if (permitidas !== '*') {

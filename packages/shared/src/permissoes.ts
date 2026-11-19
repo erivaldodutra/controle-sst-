@@ -21,6 +21,13 @@ export const PERMISSOES = {
   'treinamentos.editar': 'Cadastrar treinamentos, turmas, presença, certificados e matriz',
   'documentos.ler': 'Ver programas legais, laudos e documentos, versões e prazos',
   'documentos.editar': 'Cadastrar documentos e tipos, emitir versões, anexar arquivos e avaliar aplicabilidade',
+  'acoes.ler': 'Ver planos de ação, evidências e histórico',
+  'acoes.editar': 'Abrir, acompanhar, reprogramar e cancelar ações; anexar evidências',
+  'acoes.validar': 'Validar e concluir ações (ou devolvê-las)',
+  'inspecoes.ler': 'Ver inspeções e ocorrências',
+  'inspecoes.editar': 'Registrar inspeções, ocorrências e investigações',
+  'conformidade.ler': 'Ver a matriz de conformidade legal',
+  'conformidade.editar': 'Manter requisitos e avaliar aplicabilidade e conformidade',
 } as const;
 
 /** Dado clínico: nenhum perfil o recebe sem ser de saúde, nem o administrador geral. */
@@ -39,7 +46,8 @@ export type CodigoPerfil =
   | 'OPERADOR_ESOCIAL'
   | 'VISUALIZADOR';
 
-const LEITURA: Permissao[] = ['empresas.ler', 'estrutura.ler', 'funcionarios.ler', 'saude.ler', 'treinamentos.ler', 'documentos.ler'];
+const LEITURA: Permissao[] = ['empresas.ler', 'estrutura.ler', 'funcionarios.ler', 'saude.ler', 'treinamentos.ler', 'documentos.ler',
+  'acoes.ler', 'inspecoes.ler', 'conformidade.ler'];
 
 /**
  * Perfis padrão (seção "Perfis e permissões" do plano técnico).
@@ -52,12 +60,19 @@ export const PERFIS_PADRAO: Record<CodigoPerfil, { nome: string; permissoes: Per
   ADMIN_EMPRESA: {
     nome: 'Administrador da empresa',
     permissoes: [...LEITURA, 'empresas.editar', 'estrutura.editar', 'funcionarios.editar', 'funcionarios.importar', 'auditoria.ler',
-      'saude.editar', 'treinamentos.editar', 'documentos.editar'],
+      'saude.editar', 'treinamentos.editar', 'documentos.editar', 'acoes.editar', 'acoes.validar', 'inspecoes.editar', 'conformidade.editar'],
   },
-  ENG_SEGURANCA: { nome: 'Engenheiro de Segurança', permissoes: [...LEITURA, 'estrutura.editar', 'treinamentos.editar', 'documentos.editar'] },
-  TEC_SEGURANCA: { nome: 'Técnico de Segurança', permissoes: [...LEITURA, 'estrutura.editar', 'treinamentos.editar', 'documentos.editar'] },
-  MEDICO: { nome: 'Médico', permissoes: [...LEITURA, 'saude.editar', 'saude.clinico', 'documentos.editar'] },
-  RH: { nome: 'RH', permissoes: [...LEITURA, 'funcionarios.editar', 'funcionarios.importar', 'saude.editar', 'treinamentos.editar'] },
+  ENG_SEGURANCA: {
+    nome: 'Engenheiro de Segurança',
+    permissoes: [...LEITURA, 'estrutura.editar', 'treinamentos.editar', 'documentos.editar', 'acoes.editar', 'acoes.validar', 'inspecoes.editar',
+      'conformidade.editar'],
+  },
+  TEC_SEGURANCA: {
+    nome: 'Técnico de Segurança',
+    permissoes: [...LEITURA, 'estrutura.editar', 'treinamentos.editar', 'documentos.editar', 'acoes.editar', 'inspecoes.editar', 'conformidade.editar'],
+  },
+  MEDICO: { nome: 'Médico', permissoes: [...LEITURA, 'saude.editar', 'saude.clinico', 'documentos.editar', 'acoes.editar'] },
+  RH: { nome: 'RH', permissoes: [...LEITURA, 'funcionarios.editar', 'funcionarios.importar', 'saude.editar', 'treinamentos.editar', 'inspecoes.editar'] },
   OPERADOR_ESOCIAL: { nome: 'Operador eSocial', permissoes: [...LEITURA] },
   VISUALIZADOR: { nome: 'Visualizador', permissoes: [...LEITURA] },
 };
