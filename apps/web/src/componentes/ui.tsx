@@ -42,6 +42,17 @@ export function Aviso({ erro, tipo = 'erro', children }: { erro?: unknown; tipo?
   );
 }
 
+/** Largura do conteúdo dentro da janela maximizada, conforme o tamanho do formulário. */
+const LARGURA_CONTEUDO: Record<string, string> = {
+  'max-w-md': 'max-w-2xl',
+  'max-w-lg': 'max-w-2xl',
+  'max-w-xl': 'max-w-3xl',
+};
+
+/**
+ * Janela de formulário: abre maximizada, ocupando a tela inteira.
+ * Fecha pelo X ou pela tecla Esc (clicar fora não existe mais, então nada se perde por engano).
+ */
 export function Modal({ titulo, aberto, aoFechar, children, largura = 'max-w-2xl' }: {
   titulo: string; aberto: boolean; aoFechar: () => void; children: ReactNode; largura?: string;
 }) {
@@ -49,22 +60,27 @@ export function Modal({ titulo, aberto, aoFechar, children, largura = 'max-w-2xl
     if (!aberto) return;
     const f = (e: KeyboardEvent) => e.key === 'Escape' && aoFechar();
     window.addEventListener('keydown', f);
-    return () => window.removeEventListener('keydown', f);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', f);
+      document.body.style.overflow = overflow;
+    };
   }, [aberto, aoFechar]);
   if (!aberto) return null;
   return (
-    <div className="fixed inset-0 z-40 flex animate-surgir justify-end bg-noite-900/40 backdrop-blur-[2px]" onMouseDown={aoFechar}>
-      <div
-        className={`h-full w-full ${largura} animate-entrar-direita overflow-y-auto bg-white shadow-2xl sm:rounded-l-2xl`}
-        onMouseDown={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-label={titulo}
-      >
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-200/80 bg-white/90 px-6 py-4 backdrop-blur">
-          <h2 className="text-lg font-semibold tracking-tight">{titulo}</h2>
-          <button className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-tinta" onClick={aoFechar} aria-label="Fechar"><X size={18} /></button>
+    <div className="fixed inset-0 z-40 flex animate-surgir flex-col bg-fundo" role="dialog" aria-modal="true" aria-label={titulo}>
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/80 bg-white px-4 py-3 shadow-cartao md:px-8">
+        <h2 className="min-w-0 truncate text-lg font-semibold tracking-tight">{titulo}</h2>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-xs text-slate-400 sm:inline">
+            <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-sans text-[11px] text-slate-500">Esc</kbd> para fechar
+          </span>
+          <button className="btn-secundario px-2.5" onClick={aoFechar} aria-label="Fechar" title="Fechar"><X size={18} /></button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
+        <div className={`cartao mx-auto w-full ${LARGURA_CONTEUDO[largura] ?? 'max-w-5xl'} p-5 md:p-8`}>{children}</div>
       </div>
     </div>
   );
