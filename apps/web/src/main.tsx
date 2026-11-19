@@ -22,6 +22,8 @@ import { CadastrosSaude } from './paginas/CadastrosSaude';
 import { Treinamentos } from './paginas/Treinamentos';
 import { Turma } from './paginas/Turma';
 import { Vencimentos } from './paginas/Vencimentos';
+import { Documento } from './paginas/Documento';
+import { Documentos } from './paginas/Documentos';
 import './estilo.css';
 
 const qc = new QueryClient({
@@ -73,6 +75,8 @@ function App() {
             <Route path="/saude/cadastros" element={<CadastrosSaude />} />
             <Route path="/treinamentos" element={<Treinamentos />} />
             <Route path="/turmas/:id" element={<Turma />} />
+            <Route path="/documentos" element={<Documentos />} />
+            <Route path="/documentos/:id" element={<Documento />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/auditoria" element={<Auditoria />} />
             <Route path="/backup" element={<Backup />} />

@@ -53,14 +53,14 @@ export function Vencimentos() {
       {q.data && (
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
           {[
-            { rotulo: 'ASO vencido ou ausente', n: contar('aso', ['vencido', 'sem_aso']), t: 'aso', cor: 'text-red-700' },
-            { rotulo: 'ASO vencendo', n: contar('aso', ['vencendo']), t: 'aso', cor: 'text-amber-700' },
-            { rotulo: 'Treinamento vencido ou pendente', n: contar('treinamento', ['vencido', 'pendente']), t: 'treinamento', cor: 'text-red-700' },
-            { rotulo: 'Treinamento vencendo', n: contar('treinamento', ['vencendo']), t: 'treinamento', cor: 'text-amber-700' },
+            { rotulo: 'ASO vencido ou ausente', n: contar('aso', ['vencido', 'sem_aso']), t: 'aso', cor: 'text-red-600' },
+            { rotulo: 'ASO vencendo', n: contar('aso', ['vencendo']), t: 'aso', cor: 'text-amber-600' },
+            { rotulo: 'Treinamento vencido ou pendente', n: contar('treinamento', ['vencido', 'pendente']), t: 'treinamento', cor: 'text-red-600' },
+            { rotulo: 'Treinamento vencendo', n: contar('treinamento', ['vencendo']), t: 'treinamento', cor: 'text-amber-600' },
           ].map((c) => (
-            <button key={c.rotulo} className="cartao p-4 text-left hover:border-marca-500" onClick={() => mudar('tipo', c.t)}>
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{c.rotulo}</div>
-              <div className={`mt-1 text-2xl font-semibold tabular-nums ${c.n ? c.cor : ''}`}>{c.n}</div>
+            <button key={c.rotulo} className="cartao p-4 text-left transition hover:-translate-y-0.5 hover:border-marca-200 hover:shadow-elevado" onClick={() => mudar('tipo', c.t)}>
+              <div className="text-[13px] font-medium leading-snug text-slate-500">{c.rotulo}</div>
+              <div className={`mt-1 text-2xl font-semibold tracking-tight tabular-nums ${c.n ? c.cor : ''}`}>{c.n}</div>
             </button>
           ))}
         </div>

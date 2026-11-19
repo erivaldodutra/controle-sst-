@@ -5,7 +5,7 @@ Roda **no próprio notebook (Windows), sem internet**: banco de dados, arquivos 
 O sistema fica em segundo plano (ícone perto do relógio) e é usado **pelo navegador**, em `http://localhost:8088`.
 A internet só será usada, no futuro, para transmitir ao eSocial e baixar atualizações.
 
-> Situação: **Fase 2** (ASO e treinamentos) sobre a Fase 1 (fundação, empresas e funcionários). As próximas fases estão no plano técnico.
+> Situação: **Fase 3** (programas legais e documentos) sobre as Fases 1 (fundação, empresas e funcionários) e 2 (ASO e treinamentos). As próximas fases estão no plano técnico.
 
 ## O que a Fase 1 entrega
 
@@ -20,6 +20,18 @@ A internet só será usada, no futuro, para transmitir ao eSocial e baixar atual
 | Importação | Planilha Excel com modelo, prévia com erros por linha, gravação só após confirmação e em bloco único |
 | Busca e filtros | Seletor de empresa no topo, busca global por nome/CPF/matrícula, filtros por situação, estabelecimento, setor, função e GHE |
 | Backup | Backup completo criptografado (AES-256-GCM, senha própria): automático diário ou semanal, ao fechar o sistema e sob demanda; pasta de destino escolhida (pendrive, HD externo), com aviso quando ela não está conectada; restauração pela lista ou por arquivo, verificada antes de substituir os dados |
+
+## O que a Fase 3 entrega
+
+| Área | Funcionalidades |
+| --- | --- |
+| Tipos de documento | Biblioteca sugerida (PGR, PGRTR, PCMSO, LTCAT, AEP, AET, PCA, PPR, CIPA, laudos de insalubridade e periculosidade, avaliação ambiental, plano de emergência, proteção contra incêndio) e tipos próprios. Só traz prazo quando a norma o fixa de forma expressa |
+| Documentos | Por empresa ou estabelecimento, com base legal, critério de revisão e regras próprias (copiadas do tipo e ajustáveis) |
+| Prazos separados | Revisão legal, vencimento expresso, acompanhamento periódico, mudança de condições e reavaliação interna, cada um com data e estado próprios |
+| Situações | Regular, próximo da revisão, próximo do vencimento, vencido, pendente, em elaboração, em revisão, substituído e não aplicável, com o motivo explicado |
+| Versões | Responsável técnico e registro profissional, datas de elaboração, emissão e vigência, arquivo (PDF/JPG/PNG até 50 MB). A versão anterior vira "substituída" e não pode mais ser alterada (garantido pelo banco) |
+| Aplicabilidade | Avaliada pelo profissional, com fundamentação obrigatória para "não aplicável", nome e data registrados |
+| Painel | Indicadores de documentos regulares, pendentes, próximos da revisão, vencidos, em elaboração e substituídos |
 
 ## O que a Fase 2 entrega
 
