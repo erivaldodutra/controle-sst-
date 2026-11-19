@@ -28,6 +28,11 @@ import { Acao } from './paginas/Acao';
 import { Acoes } from './paginas/Acoes';
 import { Conformidade } from './paginas/Conformidade';
 import { Inspecao } from './paginas/Inspecao';
+import { Indicadores } from './paginas/Indicadores';
+import { Calendario } from './paginas/Calendario';
+import { Relatorios } from './paginas/Relatorios';
+import { RegrasAlerta } from './paginas/RegrasAlerta';
+import { AssistenteIa } from './paginas/AssistenteIa';
 import { Inspecoes } from './paginas/Inspecoes';
 import { Ocorrencia } from './paginas/Ocorrencia';
 import { Esocial } from './paginas/Esocial';
@@ -99,6 +104,11 @@ function App() {
             <Route path="/esocial/lotes" element={<EsocialLotes />} />
             <Route path="/esocial/agentes" element={<AgentesNocivos />} />
             <Route path="/esocial/config" element={<EsocialConfig />} />
+            <Route path="/indicadores" element={<Indicadores />} />
+            <Route path="/calendario" element={<Calendario />} />
+            <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/alertas" element={<RegrasAlerta />} />
+            <Route path="/ia" element={<AssistenteIa />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/auditoria" element={<Auditoria />} />
             <Route path="/backup" element={<Backup />} />

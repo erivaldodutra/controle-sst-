@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Download, FilePenLine, RefreshCw, RotateCcw, ShieldCheck, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, Download, FilePenLine, RefreshCw, RotateCcw, ShieldCheck, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { TIPOS_EVENTO_ESOCIAL } from '@sst/shared';
@@ -37,6 +37,12 @@ export function EsocialEvento() {
   const [verXml, setVerXml] = useState(false);
   const q = useQuery({ queryKey: ['esocial-evento', id], queryFn: () => api.get(`/esocial/eventos/${id}`) });
   const e = q.data;
+  const comErro = !!e && ['invalido', 'rejeitado'].includes(e.situacao) && (e.erros?.length > 0 || e.ocorrencias?.length > 0);
+  const iaCfg = useQuery({ queryKey: ['ia-config'], queryFn: () => api.get('/ia/config'), enabled: s.pode('ia.usar') && comErro });
+  const sugestoes = useQuery({
+    queryKey: ['ia-sugestoes', 'evento', id], queryFn: () => api.get(`/ia/sugestoes?eventoId=${id}`), enabled: s.pode('ia.usar') && comErro,
+  });
+  const [explicando, setExplicando] = useState(false);
   if (q.error) return <Aviso erro={q.error} />;
   if (!e) return <Carregando />;
   const preparar = s.pode('esocial.preparar');
@@ -62,6 +68,11 @@ export function EsocialEvento() {
     try { await baixar(`/esocial/eventos/${e.id}/xml${qual ? '?qual=recibo' : ''}`, `${e.tipo} ${e.idEvento}${qual ? ' recibo' : ''}.xml`); } catch (x) { setErro(x); }
   };
   const aberto = ['invalido', 'pendente'].includes(e.situacao);
+  const explicar = async () => {
+    setErro(undefined);
+    setExplicando(true);
+    try { nav(`/ia?sugestao=${(await api.post(`/ia/eventos/${e.id}/explicacao`)).id}`); } catch (x) { setErro(x); } finally { setExplicando(false); }
+  };
   return (
     <>
       <Link to="/esocial?aba=eventos" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-tinta"><ArrowLeft size={15} /> Central de eventos</Link>
@@ -84,6 +95,16 @@ export function EsocialEvento() {
       <Aviso erro={erro} />
       {e.situacao === 'invalido' && <Aviso tipo="info">O evento não passou na validação. Corrija o cadastro de origem e use "Gerar de novo".</Aviso>}
       {e.situacao === 'rejeitado' && <Aviso tipo="info">O eSocial recusou este evento. Corrija o cadastro de origem e gere um novo evento pelas pendências; este pode ser descartado.</Aviso>}
+      {comErro && iaCfg.data?.ativo && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-marca-200 bg-marca-50/60 px-4 py-3 text-sm">
+          <Sparkles size={17} className="text-marca-600" />
+          <span className="min-w-0 flex-1 text-slate-700">
+            O assistente de IA pode explicar estas mensagens em linguagem simples. Vão só o tipo do evento e as mensagens, sem nomes, CPF ou dados clínicos.
+            {sugestoes.data?.length > 0 && <> Já existe{sugestoes.data.length > 1 ? 'm' : ''} {sugestoes.data.length} explicação(ões): <Link className="text-marca-700 hover:underline" to={`/ia?sugestao=${sugestoes.data[0].id}&situacao=todas`}>ver a mais recente</Link>.</>}
+          </span>
+          <button className="btn-secundario" disabled={explicando} onClick={explicar}><Sparkles size={15} /> {explicando ? 'Pedindo explicação…' : 'Explicar com IA'}</button>
+        </div>
+      )}
       <ListaMensagens titulo="Erros de validação (esquema oficial e regras do leiaute)" itens={e.erros} />
       <ListaMensagens titulo={e.situacao === 'processado' ? 'Advertências do eSocial' : 'Ocorrências devolvidas pelo eSocial'} itens={e.ocorrencias ?? []}
         cor={e.situacao === 'processado' ? 'amber' : 'red'} />

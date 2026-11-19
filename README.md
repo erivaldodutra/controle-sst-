@@ -5,7 +5,7 @@ Roda **no próprio notebook (Windows), sem internet**: banco de dados, arquivos 
 O sistema fica em segundo plano (ícone perto do relógio) e é usado **pelo navegador**, em `http://localhost:8088`.
 A internet só será usada, no futuro, para transmitir ao eSocial e baixar atualizações.
 
-> Situação: **Fase 5** (eSocial S-2210, S-2220 e S-2240) sobre as Fases 1 (fundação, empresas e funcionários), 2 (ASO e treinamentos), 3 (programas legais e documentos) e 4 (planos de ação e conformidade). As próximas fases estão no plano técnico.
+> Situação: **Fase 6** (painel, relatórios, alertas e assistente de IA) sobre as Fases 1 (fundação, empresas e funcionários), 2 (ASO e treinamentos), 3 (programas legais e documentos), 4 (planos de ação e conformidade) e 5 (eSocial S-2210, S-2220 e S-2240). A próxima fase está no plano técnico.
 
 ## O que a Fase 1 entrega
 
@@ -20,6 +20,17 @@ A internet só será usada, no futuro, para transmitir ao eSocial e baixar atual
 | Importação | Planilha Excel com modelo, prévia com erros por linha, gravação só após confirmação e em bloco único |
 | Busca e filtros | Seletor de empresa no topo, busca global por nome/CPF/matrícula, filtros por situação, estabelecimento, setor, função e GHE |
 | Backup | Backup completo criptografado (AES-256-GCM, senha própria): automático diário ou semanal, ao fechar o sistema e sob demanda; pasta de destino escolhida (pendrive, HD externo), com aviso quando ela não está conectada; restauração pela lista ou por arquivo, verificada antes de substituir os dados |
+
+## O que a Fase 6 entrega
+
+| Área | Funcionalidades |
+| --- | --- |
+| Indicadores | Painel executivo calculado na hora a partir dos cadastros (nada digitado à parte): ações abertas e concluídas por mês, ocorrências por mês e dias sem acidente com afastamento, eventos do eSocial processados por mês, situação de ASO e treinamentos, documentos vencidos e conformidade por empresa. Filtro de empresa no topo e período de 6, 12 ou 24 meses; cada gráfico tem a visão em tabela |
+| Calendário de obrigações | Junta os prazos que os módulos já controlam (ASO, treinamentos, documentos, ações, eventos do eSocial e validade do certificado digital), em lista ou por mês, com atrasados e próximos em destaque e link para o registro. Exporta em PDF |
+| Notificações | Sino no topo com os prazos atrasados ou dentro da antecedência configurada, um aviso por prazo, sem repetir. Cada pessoa vê só os seus avisos e escolhe as categorias que quer receber. Aviso cujo prazo deixou de existir sai da lista sozinho. Nada é enviado para fora do computador |
+| Regras de alerta | Antecedência geral (até 6 prazos, ex.: 90, 60, 30 e 15 dias) e preferências pessoais por categoria |
+| Central de relatórios | Funcionários e lotações, ASO, treinamentos, documentos, planos de ação, ocorrências, matriz de conformidade, eventos do eSocial e calendário, em PDF ou Excel gerados no computador (sem internet), com as mesmas permissões das telas. Nenhum relatório traz resultado de exame, CID ou outro dado clínico |
+| Assistente de IA (opcional) | Desligado por padrão; precisa de internet e de uma chave da API da Anthropic, guardada cifrada e nunca devolvida. Explica erros de validação e rejeições de eventos do eSocial e resume as pendências de uma empresa. Envia só o tipo do evento e as mensagens (sem nomes, CPF, valores digitados nem dados clínicos) ou contagens; cada sugestão mostra exatamente o que foi enviado. Toda resposta fica "aguardando decisão" até uma pessoa aceitar ou descartar (com motivo); o texto recebido não pode ser alterado (garantido pelo banco). A IA não grava dados, não aprova, não define exames ou aptidão e não transmite: uma ação sugerida só vira plano de ação depois que a pessoa confere e salva o formulário |
 
 ## O que a Fase 5 entrega
 

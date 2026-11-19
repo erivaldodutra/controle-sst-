@@ -8,7 +8,7 @@ import { useSessao } from '../lib/sessao';
 import { Formulario, SituacaoPrazo } from '../componentes/saude';
 import { Campo, Carregando, Modal, Titulo, Vazio } from '../componentes/ui';
 
-function ConfigAlertas({ atual, aoSalvar }: { atual: number[]; aoSalvar: () => void }) {
+export function ConfigAlertas({ atual, aoSalvar }: { atual: number[]; aoSalvar: () => void }) {
   const [texto, setTexto] = useState(atual.join(', '));
   return (
     <Formulario aoEnviar={async () => {
@@ -19,7 +19,7 @@ function ConfigAlertas({ atual, aoSalvar }: { atual: number[]; aoSalvar: () => v
       <Campo rotulo="Avisar com quantos dias de antecedência (até 6 prazos, separados por vírgula)">
         <input className="campo" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="90, 60, 30, 15" />
       </Campo>
-      <p className="text-xs text-slate-500">Vale para ASO e treinamentos de todas as empresas. Um item entra em "vencendo" quando faltam menos dias que o maior prazo.</p>
+      <p className="text-xs text-slate-500">Vale para todas as empresas: ASO, treinamentos, documentos, ações, eventos do eSocial e certificado digital. Um prazo entra em "próximo" (e gera aviso) quando faltam menos dias que o maior valor.</p>
     </Formulario>
   );
 }
