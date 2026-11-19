@@ -12,10 +12,12 @@ export interface CredencialTls {
 export class FalhaComunicacao extends Error {}
 
 /**
- * Autoridades confiáveis: as públicas do Node, as do sistema operacional (no Windows inclui
- * a raiz da ICP-Brasil quando instalada) e a cadeia informada pelo usuário na configuração.
+ * Autoridades confiáveis: as públicas do Node mais a cadeia informada pelo usuário na
+ * configuração. Sem cadeia informada, usa também as do sistema operacional (no Windows
+ * inclui a raiz da ICP-Brasil quando instalada).
  */
 function autoridades(extra: string[] = []): string[] {
+  if (extra.length) return [...tls.rootCertificates, ...extra];
   const doSistema = (() => {
     try {
       return (tls as any).getCACertificates?.('system') ?? [];

@@ -7,6 +7,7 @@ import { randomBytes } from 'node:crypto';
 import { Client } from 'pg';
 import request from 'supertest';
 import { criarApp } from '../src/app';
+import type { Configuracao } from '../src/comum/config';
 import { migrar } from '../src/db/migrar';
 
 const HOST = process.env.PGHOST_TESTE ?? 'localhost';
@@ -14,7 +15,7 @@ const SUPER = process.env.PG_URL_ADMIN_TESTE ?? `postgres://sst_owner:dev_owner@
 const OWNER = (db: string) => `postgres://sst_owner:dev_owner@${HOST}:5432/${db}`;
 const APP = (db: string) => `postgres://sst_app:dev_app@${HOST}:5432/${db}`;
 
-export async function prepararAmbiente(nome: string) {
+export async function prepararAmbiente(nome: string, extra: Partial<Configuracao> = {}) {
   const db = `sst_it_${nome}`;
   const adm = new Client({ connectionString: SUPER });
   await adm.connect();
@@ -23,7 +24,7 @@ export async function prepararAmbiente(nome: string) {
   await adm.end();
   await migrar(OWNER(db));
   const { app, banco } = await criarApp({
-    config: { urlApp: APP(db), chaveDados: randomBytes(32), horasSessao: 12, cookieSeguro: false },
+    config: { urlApp: APP(db), chaveDados: randomBytes(32), horasSessao: 12, cookieSeguro: false, ...extra },
     log: false,
   });
   await app.init();

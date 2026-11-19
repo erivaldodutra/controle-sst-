@@ -50,6 +50,8 @@ interface Gerado {
   asoId?: string | null;
   lotacaoId?: string | null;
   catId?: string | null;
+  /** S-3000: evento excluído. */
+  origemId?: string | null;
 }
 
 const COLS_EVENTO = `e.id, e.empresa_id AS "empresaId", em.razao_social AS "empresaNome", e.tipo, e.id_evento AS "idEvento", e.ambiente,
@@ -247,8 +249,13 @@ export class EsocialService {
 
   // ====================================================================== geração dos eventos
 
-  private async validarXml(tipo: string, xml: string): Promise<ErroValidacao[]> {
-    return this.esquemas.validarEvento(xml, XSD_EVENTO[tipo]!);
+  /**
+   * Antes da aprovação o XML ainda não tem assinatura (ela só é feita quando uma pessoa aprova):
+   * nessa etapa, a única falta aceita é a do elemento Signature.
+   */
+  private async validarXml(tipo: string, xml: string, assinado = true): Promise<ErroValidacao[]> {
+    const erros = await this.esquemas.validarEvento(xml, XSD_EVENTO[tipo]!);
+    return assinado ? erros : erros.filter((e) => !/xmldsig#\}Signature/.test(e.mensagem));
   }
 
   private async proximoId(tx: Tx, emp: Empregador) {
@@ -273,12 +280,12 @@ export class EsocialService {
     let erros: Problema[] = [...gerado.problemas];
     if (gerado.montar) {
       xml = gerado.montar(idEvt, ide);
-      if (!erros.length) erros = (await this.validarXml(gerado.tipo, xml)).map((x) => ({ linha: x.linha, mensagem: `XSD: ${x.mensagem}` }));
+      if (!erros.length) erros = (await this.validarXml(gerado.tipo, xml, false)).map((x) => ({ linha: x.linha, mensagem: `XSD: ${x.mensagem}` }));
     }
     const situacao = erros.length ? 'invalido' : 'pendente';
     if (existente) {
       await tx.query(
-        `UPDATE esocial_evento SET xml = $2, erros = $3, situacao = $4, resumo = $5, referencia = $6, atualizado_por = app.usuario_atual()
+        `UPDATE esocial_evento SET xml = $2, erros = $3, situacao = $4, resumo = $5, referencia = $6, gerado_em = now(), atualizado_por = app.usuario_atual()
           WHERE id = $1`, [existente.id, xml, JSON.stringify(erros), situacao, gerado.resumo, gerado.referencia]);
       return existente.id;
     }
@@ -286,7 +293,7 @@ export class EsocialService {
       `INSERT INTO esocial_evento (tenant_id, empresa_id, tipo, id_evento, ambiente, ind_retif, evento_origem_id, vinculo_id, aso_id, lotacao_id,
                                    cat_id, referencia, resumo, xml, erros, situacao, criado_por)
        VALUES (app.tenant_atual(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, app.usuario_atual()) RETURNING id`,
-      [emp.empresaId, gerado.tipo, idEvt, emp.ambiente, ide.indRetif, retifica?.id ?? null, gerado.vinculoId ?? null, gerado.asoId ?? null,
+      [emp.empresaId, gerado.tipo, idEvt, emp.ambiente, ide.indRetif, retifica?.id ?? gerado.origemId ?? null, gerado.vinculoId ?? null, gerado.asoId ?? null,
         gerado.lotacaoId ?? null, gerado.catId ?? null, gerado.referencia, gerado.resumo, xml, JSON.stringify(erros), situacao]);
     return r!.id as string;
   }
@@ -551,12 +558,10 @@ export class EsocialService {
       if (ja) throw erro('Já existe uma exclusão para este evento');
       const hoje = await this.hoje(tx);
       const g: Gerado = {
-        tipo: 'S-3000', referencia: hoje, vinculoId: ev.vinculo_id, resumo: `Exclusão do ${ev.tipo}: ${ev.resumo}`, problemas: [],
+        tipo: 'S-3000', referencia: hoje, vinculoId: ev.vinculo_id, origemId: id, resumo: `Exclusão do ${ev.tipo}: ${ev.resumo}`, problemas: [],
         montar: (i, ide) => xmlS3000({ id: i, tpAmb: ide.tpAmb, verProc: VER_PROC, empregador: emp.ide, tpEvento: ev.tipo, nrRecEvt: ev.nr_recibo, cpfTrab: ev.cpf }),
       };
-      const novo = await this.gravar(tx, u, emp, g, null);
-      await tx.query('UPDATE esocial_evento SET evento_origem_id = $2 WHERE id = $1', [novo, id]);
-      return novo;
+      return this.gravar(tx, u, emp, g, null);
     });
   }
 
@@ -855,17 +860,17 @@ export class EsocialService {
       const trabalhadores = await tx.query(
         `SELECT v.id AS "vinculoId", f.nome AS "funcionarioNome", v.matricula, l.id AS "lotacaoId", l.inicio, g.codigo AS "gheCodigo",
                 l.ghe_id IS NOT NULL AS "temGhe",
-                ult.criado_em AS "ultimoEvento", ult.referencia AS "ultimaReferencia",
+                ult.gerado_em AS "ultimoEvento", ult.referencia AS "ultimaReferencia",
                 (SELECT max(greatest(an.criado_em, an.atualizado_em)) FROM agente_nocivo an WHERE an.ghe_id = l.ghe_id) AS "agentesAlterados"
            FROM vinculo v JOIN funcionario f ON f.id = v.funcionario_id
            JOIN lotacao l ON l.vinculo_id = v.id AND l.fim IS NULL
            LEFT JOIN ghe g ON g.id = l.ghe_id
-           LEFT JOIN LATERAL (SELECT e.criado_em, e.referencia, e.lotacao_id FROM esocial_evento e
+           LEFT JOIN LATERAL (SELECT e.gerado_em, e.referencia, e.lotacao_id FROM esocial_evento e
                                WHERE e.vinculo_id = v.id AND e.tipo = 'S-2240' AND e.situacao IN ${ATIVOS}
-                               ORDER BY e.referencia DESC, e.criado_em DESC LIMIT 1) ult ON true
+                               ORDER BY e.referencia DESC, e.gerado_em DESC LIMIT 1) ult ON true
           WHERE v.empresa_id = $1 AND v.data_desligamento IS NULL
-            AND (ult.criado_em IS NULL OR ult.lotacao_id IS DISTINCT FROM l.id
-                 OR ult.criado_em < (SELECT max(greatest(an.criado_em, an.atualizado_em)) FROM agente_nocivo an WHERE an.ghe_id = l.ghe_id))
+            AND (ult.gerado_em IS NULL OR ult.lotacao_id IS DISTINCT FROM l.id
+                 OR ult.gerado_em < (SELECT max(greatest(an.criado_em, an.atualizado_em)) FROM agente_nocivo an WHERE an.ghe_id = l.ghe_id))
           ORDER BY f.nome LIMIT 500`, [empresaId]);
       const cats = await tx.query(
         `SELECT o.id AS "ocorrenciaId", o.codigo, o.tipo, to_char(o.data_hora, 'YYYY-MM-DD') AS data, f.nome AS "funcionarioNome",

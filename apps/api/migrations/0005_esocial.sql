@@ -196,6 +196,8 @@ CREATE TABLE esocial_evento (
   referencia           date NOT NULL,
   resumo               text NOT NULL,
   xml                  text NOT NULL,
+  -- Quando o XML foi montado pela última vez a partir dos cadastros.
+  gerado_em            timestamptz NOT NULL DEFAULT now(),
   erros                jsonb NOT NULL DEFAULT '[]',
   situacao             text NOT NULL CHECK (situacao IN ('invalido', 'pendente', 'aprovado', 'enviado', 'processado', 'rejeitado', 'cancelado', 'excluido')),
   xml_assinado         text,
@@ -337,7 +339,8 @@ END $$;
 CREATE TRIGGER esocial_certificado_regras BEFORE UPDATE ON esocial_certificado FOR EACH ROW EXECUTE FUNCTION app.regras_certificado_esocial();
 
 -- ---------------------------------------------------------------------------
--- Auditoria: segredos, XMLs grandes e o atestado da CAT não vão para o registro.
+-- Auditoria: segredos, conteúdo de arquivos, XMLs grandes e o atestado da CAT não vão para o registro.
+-- (Mesma função da 0002, com os campos novos.)
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION app.registrar_auditoria() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, app AS $$
@@ -345,7 +348,7 @@ DECLARE
   v_antes  jsonb := CASE WHEN TG_OP <> 'INSERT' THEN to_jsonb(OLD) END;
   v_depois jsonb := CASE WHEN TG_OP <> 'DELETE' THEN to_jsonb(NEW) END;
   v_ref    jsonb := coalesce(v_depois, v_antes);
-  v_fora   text[] := ARRAY['senha_hash', 'mfa_segredo', 'token_hash', 'linhas', 'pfx_cifrado', 'senha_cifrada', 'xml',
+  v_fora   text[] := ARRAY['senha_hash', 'mfa_segredo', 'token_hash', 'linhas', 'conteudo', 'pfx_cifrado', 'senha_cifrada', 'xml',
                            'xml_assinado', 'recibo_xml', 'xml_envio', 'retorno_envio', 'retorno_consulta', 'atestado'];
 BEGIN
   v_antes  := v_antes  - v_fora;
@@ -356,7 +359,7 @@ BEGIN
   INSERT INTO auditoria (tenant_id, usuario_id, empresa_id, tabela, registro_id, operacao, antes, depois, contexto)
   VALUES ((v_ref->>'tenant_id')::uuid, app.usuario_atual(),
           CASE WHEN TG_TABLE_NAME = 'empresa' THEN (v_ref->>'id')::uuid ELSE (v_ref->>'empresa_id')::uuid END,
-          TG_TABLE_NAME, coalesce(v_ref->>'id', v_ref->>'empresa_id'), TG_OP, v_antes, v_depois,
+          TG_TABLE_NAME, coalesce(v_ref->>'id', v_ref->>'aso_exame_id', v_ref->>'empresa_id', v_ref->>'tenant_id'), TG_OP, v_antes, v_depois,
           nullif(current_setting('app.contexto', true), ''));
   RETURN NULL;
 END $$;
