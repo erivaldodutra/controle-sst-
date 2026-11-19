@@ -9,6 +9,27 @@ const mb = (b: number) => `${(b / 1024 / 1024).toFixed(1)} MB`;
 
 interface Config { pasta: string | null; frequencia: 'desligado' | 'diario' | 'semanal'; aoSair: boolean; manter: number }
 
+const ROTULOS: Record<string, string> = {
+  usuario: 'Usuários', empresa: 'Empresas', funcionario: 'Funcionários', vinculo: 'Vínculos', aso: 'ASOs', turma_participante: 'Participações em treinamento',
+  documento_versao: 'Versões de documentos', acao: 'Ações', ocorrencia: 'Ocorrências', esocial_evento: 'Eventos do eSocial', auditoria: 'Registros de auditoria',
+};
+
+function ResultadoTeste({ v }: { v: any }) {
+  return (
+    <div className={`rounded-lg border p-3 ${v.ok ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
+      <div className={`font-medium ${v.ok ? 'text-emerald-800' : 'text-red-800'}`}>
+        {v.ok ? 'Último teste aprovado' : 'Último teste falhou'} · {dataHoraBr(v.verificadoEm)} · {v.arquivo}
+      </div>
+      {v.ok ? (
+        <div className="mt-1 text-xs text-slate-600">
+          Banco na atualização {v.versaoBanco?.replace(/\.sql$/, '')}, conferido em {(v.duracaoMs / 1000).toFixed(1)} s:{' '}
+          {Object.entries(v.contagens).map(([k, n]) => `${ROTULOS[k] ?? k}: ${Number(n).toLocaleString('pt-BR')}`).join(' · ')}
+        </div>
+      ) : <div className="mt-1 text-xs text-red-700">{v.erro}</div>}
+    </div>
+  );
+}
+
 const FREQUENCIAS = { diario: 'Todo dia', semanal: 'Toda semana', desligado: 'Desligado' } as const;
 
 function ConfigAutomatico({ d, executar, ocupado }: { d: any; executar: (fn: () => Promise<string | undefined>) => void; ocupado: boolean }) {
@@ -67,6 +88,8 @@ export function Backup() {
   const [senha, setSenha] = useState({ nova: '', confirma: '' });
   const [restSenha, setRestSenha] = useState('');
   const [restArquivo, setRestArquivo] = useState('');
+  const [testeSenha, setTesteSenha] = useState('');
+  const [testeArquivo, setTesteArquivo] = useState('');
   const [erro, setErro] = useState<unknown>();
   const [ok, setOk] = useState<string>();
   const [ocupado, setOcupado] = useState(false);
@@ -136,6 +159,26 @@ export function Backup() {
             ))}</tbody>
           </table>
         )}
+      </div>
+      <div className="cartao mt-6 space-y-3 p-5 text-sm">
+        <h2 className="font-semibold">Testar a restauração</h2>
+        <p className="text-slate-600">Abre o backup num banco temporário, separado do que está em uso, e confere se os dados voltam. Nada muda no sistema. Também é feito sozinho depois de um backup automático, uma vez por semana.</p>
+        {d.ultimaVerificacao && <ResultadoTeste v={d.ultimaVerificacao} />}
+        <div className="flex flex-wrap items-end gap-2">
+          <Campo rotulo="Backup">
+            <select className="campo" value={testeArquivo} onChange={(e) => setTesteArquivo(e.target.value)}>
+              <option value="">O mais recente</option>
+              {d.backups.map((b: any) => <option key={b.caminho} value={b.caminho}>{dataHoraBr(b.criadoEm)} · {b.arquivo}</option>)}
+            </select>
+          </Campo>
+          <Campo rotulo="Senha do backup"><input className="campo" type="password" value={testeSenha} onChange={(e) => setTesteSenha(e.target.value)} /></Campo>
+          <button className="btn-secundario" disabled={ocupado || !testeSenha || !d.backups.length} onClick={() => executar(async () => {
+            const r = await api.post('/backup/verificacao', { senha: testeSenha, caminho: testeArquivo || undefined });
+            setTesteSenha('');
+            if (!r.ok) throw new Error(`O teste de restauração falhou: ${r.erro}`);
+            return `Teste de restauração aprovado: ${r.arquivo}`;
+          })}>{ocupado ? 'Testando…' : 'Testar restauração'}</button>
+        </div>
       </div>
       <div className="cartao mt-6 space-y-3 border-red-200 p-5 text-sm">
         <h2 className="font-semibold text-red-800">Restaurar um backup</h2>

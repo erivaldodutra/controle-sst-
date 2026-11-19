@@ -134,6 +134,28 @@ describe('aplicativo local', () => {
     expect((await chamar('GET', '/backup')).corpo.proximoAutomatico).toBeNull();
   }, 60_000);
 
+  it('testa a restauração num banco temporário sem parar o banco em uso', async () => {
+    const r = await chamar('POST', '/backup/verificacao', { senha: 'SenhaBackup2026' });
+    expect(r.status).toBe(201);
+    expect(r.corpo.ok).toBe(true);
+    expect(r.corpo.erro).toBeNull();
+    expect(r.corpo.versaoBanco).toMatch(/^\d{4}_.+\.sql$/);
+    expect(r.corpo.contagens.usuario).toBeGreaterThan(0);
+    expect(r.corpo.contagens.empresa).toBeGreaterThan(0);
+    // A pasta temporária some e o banco em uso continua respondendo.
+    expect(existsSync(join(pasta, 'verificacao-temp'))).toBe(false);
+    expect((await chamar('GET', '/empresas')).status).toBe(200);
+    // Senha errada: o teste falha e fica registrado.
+    const e = await chamar('POST', '/backup/verificacao', { senha: 'errada' });
+    expect(e.corpo.ok).toBe(false);
+    expect(e.corpo.erro).toMatch(/Senha do backup incorreta/);
+    const est = (await chamar('GET', '/backup')).corpo;
+    expect(est.ultimaVerificacao.ok).toBe(false);
+    // A terceira é a do backup automático do teste anterior (testa a restauração quando o último teste passou de 7 dias).
+    const hist = JSON.parse(readFileSync(join(pasta, 'verificacoes-backup.json'), 'utf8'));
+    expect(hist.map((x: any) => x.ok)).toEqual([false, true, true]);
+  }, 120_000);
+
   it('senha errada não restaura nada', async () => {
     const r = await chamar('POST', '/backup/restauracao', { senha: 'errada' });
     expect(r.status).toBe(409);
