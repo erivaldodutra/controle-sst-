@@ -58,12 +58,12 @@ beforeAll(async () => {
 afterAll(async () => amb?.fechar());
 
 describe('permissões dos perfis', () => {
-  it('as migrations 0002 a 0005 dão às instalações existentes as mesmas permissões novas dos perfis padrão', () => {
+  it('as migrations 0002 a 0007 dão às instalações existentes as mesmas permissões novas dos perfis padrão', () => {
     const fase1 = new Set(['usuarios.gerenciar', 'auditoria.ler', 'empresas.ler', 'empresas.editar', 'estrutura.ler',
       'estrutura.editar', 'funcionarios.ler', 'funcionarios.editar', 'funcionarios.importar', 'backup.gerenciar']);
     const esperado = Object.entries(PERFIS_PADRAO)
       .flatMap(([codigo, p]) => p.permissoes.filter((x) => !fase1.has(x)).map((x) => `${codigo}:${x}`)).sort();
-    const naMigration = ['0002_saude_treinamentos.sql', '0003_programas_documentos.sql', '0004_acoes_conformidade.sql', '0005_esocial.sql'].flatMap((arq) => {
+    const naMigration = ['0002_saude_treinamentos.sql', '0003_programas_documentos.sql', '0004_acoes_conformidade.sql', '0005_esocial.sql', '0007_painel_alertas_ia.sql'].flatMap((arq) => {
       const sql = readFileSync(join(__dirname, '..', 'migrations', arq), 'utf8');
       const bloco = sql.slice(sql.indexOf('JOIN (VALUES'), sql.indexOf(') AS n (codigo, permissao)'));
       return [...bloco.matchAll(/\('([A-Z_]+)', '([a-z.]+)'\)/g)].map((m) => `${m[1]}:${m[2]}`);

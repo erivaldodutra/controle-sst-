@@ -35,6 +35,12 @@ import { InspecoesService } from './acoes/inspecoes.service';
 import { CadastrosEsocialService } from './esocial/cadastros.service';
 import { EsocialController } from './esocial/esocial.controller';
 import { EsocialService } from './esocial/esocial.service';
+import { AlertasController } from './painel/alertas.controller';
+import { CalendarioService } from './painel/calendario.service';
+import { IndicadoresService } from './painel/indicadores.service';
+import { RelatoriosService } from './painel/relatorios.service';
+import { IaController } from './ia/ia.controller';
+import { IaService } from './ia/ia.service';
 
 export interface OpcoesApp {
   config: Configuracao;
@@ -58,6 +64,7 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
       AuthController, EmpresasController, EstruturaController, FuncionariosController,
       ImportacaoController, UsuariosController, PainelController, SaudeController, TreinamentosController,
       DocumentosController, AcoesController, InspecoesController, ConformidadeController, EsocialController,
+      AlertasController, IaController,
       ...(op.backup ? [BackupController] : []),
     ],
     providers: [
@@ -69,6 +76,7 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
       AuthService, EmpresasService, EstruturaService, FuncionariosService, ImportacaoService, UsuariosService,
       CadastrosSaudeService, AsoService, VencimentosService, TreinamentosService, DocumentosService,
       AcoesService, InspecoesService, ConformidadeService, EsocialService, CadastrosEsocialService,
+      CalendarioService, IndicadoresService, RelatoriosService, IaService,
     ],
   })
   class AppModule {}

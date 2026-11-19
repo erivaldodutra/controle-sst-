@@ -10,6 +10,8 @@ export interface Configuracao {
   pastaEsocial?: string;
   /** Somente testes automatizados: endereços de um servidor local no lugar dos webservices do governo. */
   enderecosEsocialTeste?: Record<1 | 2, { envio: string; consulta: string }>;
+  /** Somente testes automatizados: servidor local no lugar da API da Anthropic. */
+  iaBaseUrlTeste?: string;
 }
 
 export const CONFIG = Symbol('CONFIG');

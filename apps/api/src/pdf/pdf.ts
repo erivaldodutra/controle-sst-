@@ -209,3 +209,64 @@ export async function pdfCertificado(c: any): Promise<Buffer> {
   w.rodape(`Controle SST · Certificado ${c.codigo}`);
   return Buffer.from(await w.doc.save());
 }
+
+export interface Tabela {
+  titulo: string;
+  subtitulo: string;
+  colunas: { titulo: string; peso: number }[];
+  linhas: string[][];
+  rodape: string;
+}
+
+/** Relatório em tabela, A4 paisagem, com cabeçalho repetido em cada página. */
+export async function pdfTabela(t: Tabela): Promise<Buffer> {
+  const PAISAGEM: [number, number] = [A4[1], A4[0]];
+  const M = 36;
+  const doc = await PDFDocument.create();
+  doc.setTitle(limpo(t.titulo));
+  doc.setProducer('Controle SST');
+  doc.setCreator('Controle SST');
+  const normal = await doc.embedFont(StandardFonts.Helvetica);
+  const negrito = await doc.embedFont(StandardFonts.HelveticaBold);
+  const w = new Escritor(doc, doc.addPage(PAISAGEM), normal, negrito);
+  const largura = PAISAGEM[0] - 2 * M;
+  const soma = t.colunas.reduce((s, c) => s + c.peso, 0);
+  const larg = t.colunas.map((c) => (c.peso / soma) * largura);
+  const xs = larg.map((_, i) => M + larg.slice(0, i).reduce((s, l) => s + l, 0));
+  const TAM = 7.5;
+  const ALT = TAM * 1.3;
+  let page = w.page;
+  let y = PAISAGEM[1] - M;
+  const escrever = (texto: string, x: number, yy: number, o: { f?: PDFFont; tam?: number; cor?: ReturnType<typeof rgb> } = {}) =>
+    page.drawText(limpo(texto), { x, y: yy, size: o.tam ?? TAM, font: o.f ?? normal, color: o.cor ?? COR_TEXTO });
+  const cabecalho = (primeira: boolean) => {
+    if (primeira) {
+      escrever(t.titulo, M, y - 14, { f: negrito, tam: 14 });
+      y -= 22;
+      for (const l of w.quebrar(t.subtitulo, normal, 8.5, largura)) { escrever(l, M, y - 9, { tam: 8.5, cor: COR_SUAVE }); y -= 12; }
+      y -= 6;
+    }
+    page.drawRectangle({ x: M, y: y - ALT - 3, width: largura, height: ALT + 5, color: rgb(0.93, 0.95, 0.96) });
+    t.colunas.forEach((c, i) => escrever(c.titulo, xs[i]! + 2, y - ALT + 1, { f: negrito }));
+    y -= ALT + 7;
+  };
+  cabecalho(true);
+  if (!t.linhas.length) escrever('Nenhum registro com estes filtros.', M, y - 10, { tam: 9, cor: COR_SUAVE });
+  for (const linha of t.linhas) {
+    const quebras = linha.map((v, i) => w.quebrar(v || '—', normal, TAM, larg[i]! - 4));
+    const altura = Math.max(...quebras.map((q) => q.length)) * ALT + 3;
+    if (y - altura < M + 14) {
+      page = doc.addPage(PAISAGEM);
+      y = PAISAGEM[1] - M;
+      cabecalho(false);
+    }
+    quebras.forEach((q, i) => q.forEach((l, k) => escrever(l, xs[i]! + 2, y - (k + 1) * ALT + 2)));
+    y -= altura;
+    page.drawLine({ start: { x: M, y: y + 1 }, end: { x: M + largura, y: y + 1 }, thickness: 0.4, color: COR_LINHA });
+  }
+  const paginas = doc.getPages();
+  paginas.forEach((p, i) => {
+    p.drawText(limpo(`${t.rodape} · página ${i + 1} de ${paginas.length}`), { x: M, y: 18, size: 7, font: normal, color: COR_SUAVE });
+  });
+  return Buffer.from(await doc.save());
+}

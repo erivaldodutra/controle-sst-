@@ -5,3 +5,4 @@ export * from './saude';
 export * from './programas';
 export * from './acoes';
 export * from './esocial';
+export * from './painel';
