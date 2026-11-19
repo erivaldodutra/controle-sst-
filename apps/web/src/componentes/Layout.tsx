@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   AlarmClock, Building2, ClipboardList, DatabaseBackup, FileSpreadsheet, GraduationCap, HeartPulse, LayoutDashboard, LogOut, Network,
-  Search, ShieldCheck, Stethoscope, UserCog, Users,
+  FileText, Search, ShieldCheck, Stethoscope, UserCog, Users,
 } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
@@ -31,6 +31,12 @@ const GRUPOS: { titulo: string; itens: Item[] }[] = [
       { para: '/asos', rotulo: 'ASO', icone: <HeartPulse size={17} />, permissao: 'saude.ler' },
       { para: '/treinamentos', rotulo: 'Treinamentos', icone: <GraduationCap size={17} />, permissao: 'treinamentos.ler' },
       { para: '/saude/cadastros', rotulo: 'Médicos, clínicas e exames', icone: <Stethoscope size={17} />, permissao: 'saude.ler' },
+    ],
+  },
+  {
+    titulo: 'Programas legais',
+    itens: [
+      { para: '/documentos', rotulo: 'Programas e documentos', icone: <FileText size={17} />, permissao: 'documentos.ler' },
     ],
   },
   {

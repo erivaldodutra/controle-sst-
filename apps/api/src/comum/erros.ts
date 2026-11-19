@@ -46,6 +46,9 @@ const UNICOS: Record<string, string> = {
   treinamento_tenant_id_nome_key: 'Já existe um treinamento com este nome',
   turma_participante_turma_id_funcionario_id_key: 'Funcionário já está nesta turma',
   matriz_treinamento_empresa_id_treinamento_id_funcao_id_ghe__key: 'Este treinamento já está na matriz para esta função/GHE',
+  documento_tipo_tenant_id_nome_key: 'Já existe um tipo de documento com este nome',
+  documento_versao_uma_vigente: 'Este documento já tem uma versão vigente',
+  documento_versao_um_rascunho: 'Já existe uma versão em elaboração ou revisão deste documento',
 };
 
 export function traduzirPg(e: any): { status: number; mensagem: string } | null {
