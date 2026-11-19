@@ -1,5 +1,5 @@
 {
-  "executadoEm": "2026-11-19T18:36:17.668Z",
+  "executadoEm": "2026-11-19T18:46:28.356Z",
   "node": "v22.23.5",
   "volume": {
     "empresa": 30,
@@ -7,174 +7,174 @@
     "vinculo": 30000,
     "lotacao": 30000,
     "aso": 59970,
-    "turma_participante": 14945,
+    "turma_participante": 15001,
     "acao": 3000,
     "ocorrencia": 1500,
     "documento": 360,
-    "notificacao": 14147,
-    "auditoria": 172119
+    "notificacao": 14222,
+    "auditoria": 172175
   },
   "medidas": [
     {
       "nome": "Início (contagens)",
-      "ms": 125,
+      "ms": 131,
       "bytes": 126,
       "limite": 2000
     },
     {
       "nome": "Notificações (1ª geração)",
-      "ms": 1475,
+      "ms": 1444,
       "bytes": 62358,
       "limite": 2000
     },
     {
       "nome": "Notificações",
-      "ms": 1251,
+      "ms": 1323,
       "bytes": 62358,
       "limite": 2000
     },
     {
       "nome": "Calendário (90 dias, como a tela)",
-      "ms": 1077,
-      "bytes": 4330729,
+      "ms": 1065,
+      "bytes": 4359217,
       "limite": 2000
     },
     {
       "nome": "Calendário (mês atual)",
-      "ms": 956,
-      "bytes": 2729884,
+      "ms": 990,
+      "bytes": 2721601,
       "limite": 2000
     },
     {
       "nome": "Início (resumo de vencimentos)",
-      "ms": 1013,
+      "ms": 1081,
       "bytes": 173,
       "limite": 2000
     },
     {
       "nome": "Indicadores (12 meses)",
-      "ms": 1137,
+      "ms": 1293,
       "bytes": 5840,
       "limite": 2000
     },
     {
       "nome": "Indicadores de uma empresa",
-      "ms": 547,
+      "ms": 594,
       "bytes": 3023,
       "limite": 2000
     },
     {
       "nome": "Funcionários (página 1)",
-      "ms": 888,
+      "ms": 869,
       "bytes": 20518,
       "limite": 2000
     },
     {
       "nome": "Funcionários de uma empresa",
-      "ms": 43,
+      "ms": 42,
       "bytes": 20739,
       "limite": 2000
     },
     {
       "nome": "Busca por nome",
-      "ms": 75,
+      "ms": 72,
       "bytes": 1760,
       "limite": 2000
     },
     {
       "nome": "ASOs (página 1)",
-      "ms": 545,
+      "ms": 507,
       "bytes": 34198,
       "limite": 2000
     },
     {
       "nome": "Vencimentos (ASO e treinamentos)",
-      "ms": 943,
-      "bytes": 782790,
+      "ms": 1057,
+      "bytes": 782895,
       "limite": 2000
     },
     {
       "nome": "Ações",
-      "ms": 79,
+      "ms": 91,
       "bytes": 3595521,
       "limite": 2000
     },
     {
       "nome": "Ocorrências",
-      "ms": 281,
+      "ms": 354,
       "bytes": 955701,
       "limite": 2000
     },
     {
       "nome": "Documentos",
-      "ms": 16,
+      "ms": 15,
       "bytes": 534537,
       "limite": 2000
     },
     {
       "nome": "Auditoria",
-      "ms": 7,
-      "bytes": 147444,
+      "ms": 8,
+      "bytes": 147791,
       "limite": 2000
     },
     {
       "nome": "Política de retenção",
-      "ms": 164,
+      "ms": 179,
       "bytes": 1572,
       "limite": 2000
     },
     {
       "nome": "Técnico: notificações",
-      "ms": 451,
+      "ms": 399,
       "bytes": 62880,
       "limite": 2000
     },
     {
       "nome": "Técnico: indicadores",
-      "ms": 386,
+      "ms": 368,
       "bytes": 3392,
       "limite": 2000
     },
     {
       "nome": "Técnico: vencimentos",
-      "ms": 320,
-      "bytes": 787262,
+      "ms": 295,
+      "bytes": 787388,
       "limite": 2000
     },
     {
       "nome": "Técnico: funcionários",
-      "ms": 836,
+      "ms": 808,
       "bytes": 20667,
       "limite": 2000
     },
     {
       "nome": "Relatório funcionários (Excel, uma empresa)",
-      "ms": 149,
+      "ms": 148,
       "bytes": 55166,
       "limite": 15000
     },
     {
       "nome": "Relatório ASO (PDF, uma empresa)",
-      "ms": 152,
-      "bytes": 122421,
+      "ms": 172,
+      "bytes": 122461,
       "limite": 15000
     },
     {
       "nome": "Relatório ASO (Excel, todas)",
-      "ms": 1480,
-      "bytes": 736843,
+      "ms": 1424,
+      "bytes": 736542,
       "limite": 15000
     },
     {
       "nome": "Relatório ações (PDF, todas)",
-      "ms": 925,
-      "bytes": 717620,
+      "ms": 922,
+      "bytes": 717618,
       "limite": 15000
     },
     {
       "nome": "Relatório treinamentos (Excel, todas)",
-      "ms": 1749,
-      "bytes": 664922,
+      "ms": 1788,
+      "bytes": 665241,
       "limite": 15000
     }
   ]

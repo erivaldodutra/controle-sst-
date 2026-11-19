@@ -38,7 +38,7 @@ export function estadoPrazo(data: string, hoje: string, janela: number): { estad
 }
 
 export const preferenciasSchema = z.object({
-  categorias: z.record(z.enum(LISTA_CATEGORIAS as [CategoriaAlerta, ...CategoriaAlerta[]]), z.boolean()),
+  categorias: z.partialRecord(z.enum(LISTA_CATEGORIAS as [CategoriaAlerta, ...CategoriaAlerta[]]), z.boolean()),
 });
 
 // ---------------------------------------------------------------------------

@@ -43,7 +43,7 @@ export const empresaSchema = z
     grauRisco: z.number().int().min(1).max(4).optional().nullable().transform((v) => v ?? null),
     naturezaJuridica: digitosOpcional(4, 'Natureza jurídica'),
     classificacaoTributaria: digitosOpcional(2, 'Classificação tributária'),
-    endereco: enderecoSchema.default({}),
+    endereco: enderecoSchema.prefault({}),
     responsavelNome: textoOpcional(200),
     responsavelCpf: z.string().optional().nullable().transform((v) => (v ? somenteDigitos(v) : null))
       .refine((v) => v === null || cpfValido(v), 'CPF do responsável inválido'),
@@ -68,7 +68,7 @@ export const estabelecimentoSchema = z
     matriz: z.boolean().default(false),
     cnae: digitosOpcional(7, 'CNAE'),
     grauRisco: z.number().int().min(1).max(4).optional().nullable().transform((v) => v ?? null),
-    endereco: enderecoSchema.default({}),
+    endereco: enderecoSchema.prefault({}),
     observacoes: textoOpcional(2000),
   })
   .superRefine((v, ctx) => {
