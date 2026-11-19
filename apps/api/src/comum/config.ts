@@ -6,6 +6,10 @@ export interface Configuracao {
   horasSessao: number;
   /** Cookie com flag Secure (desligado no app local, que roda em http://127.0.0.1). */
   cookieSeguro: boolean;
+  /** Pasta com os esquemas oficiais do eSocial (XSD). Padrão: apps/api/esocial. */
+  pastaEsocial?: string;
+  /** Somente testes automatizados: endereços de um servidor local no lugar dos webservices do governo. */
+  enderecosEsocialTeste?: Record<1 | 2, { envio: string; consulta: string }>;
 }
 
 export const CONFIG = Symbol('CONFIG');
@@ -23,5 +27,6 @@ export function configDoAmbiente(): Configuracao {
     chaveDados,
     horasSessao: Number(process.env.SST_HORAS_SESSAO ?? 12),
     cookieSeguro: process.env.SST_COOKIE_SEGURO === '1',
+    pastaEsocial: process.env.SST_PASTA_ESOCIAL || undefined,
   };
 }
