@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { CalendarClock, FileCheck2, FilePen, Files, FileWarning, FileX2 } from 'lucide-react';
+import { ReactNode } from 'react';
 import { api, qs } from '../lib/api';
 import { useSessao } from '../lib/sessao';
+import { Indicador, Tom } from './Indicador';
 
 /** Indicadores de programas legais e documentos para o painel inicial. */
 export function PainelDocumentos() {
@@ -13,29 +15,21 @@ export function PainelDocumentos() {
   });
   if (!data) return null;
   const n = (l: string[]) => l.reduce((a, x) => a + (data.resumo?.[x] ?? 0), 0);
-  const cartoes = [
-    { rotulo: 'Documentos regulares', sits: ['regular'], cor: '' },
-    { rotulo: 'Pendentes', sits: ['pendente'], cor: 'text-red-700' },
-    { rotulo: 'Próximos da revisão ou vencimento', sits: ['proximo_revisao', 'proximo_vencimento'], cor: 'text-amber-700' },
-    { rotulo: 'Vencidos', sits: ['vencido'], cor: 'text-red-700' },
-    { rotulo: 'Em elaboração ou revisão', sits: ['em_elaboracao', 'em_revisao'], cor: '' },
-    { rotulo: 'Substituídos', sits: ['substituido'], cor: '' },
+  const cartoes: { rotulo: string; sits: string[]; icone: ReactNode; tom: Tom; alerta?: boolean }[] = [
+    { rotulo: 'Documentos regulares', sits: ['regular'], icone: <FileCheck2 size={20} />, tom: 'marca' },
+    { rotulo: 'Pendentes', sits: ['pendente'], icone: <FileWarning size={20} />, tom: 'vermelho', alerta: true },
+    { rotulo: 'Próximos da revisão ou vencimento', sits: ['proximo_revisao', 'proximo_vencimento'], icone: <CalendarClock size={20} />, tom: 'ambar', alerta: true },
+    { rotulo: 'Vencidos', sits: ['vencido'], icone: <FileX2 size={20} />, tom: 'vermelho', alerta: true },
+    { rotulo: 'Em elaboração ou revisão', sits: ['em_elaboracao', 'em_revisao'], icone: <FilePen size={20} />, tom: 'azul' },
+    { rotulo: 'Substituídos', sits: ['substituido'], icone: <Files size={20} />, tom: 'cinza' },
   ];
   return (
     <>
-      <h2 className="mb-2 mt-6 text-sm font-semibold text-slate-600">Programas legais e documentos</h2>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-        {cartoes.map((c) => {
-          const v = n(c.sits);
-          return (
-            <Link key={c.rotulo} to={`/documentos?situacao=${c.sits.join(',')}`}>
-              <div className="cartao p-4 transition hover:border-marca-500">
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{c.rotulo}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${v ? c.cor : ''}`}>{v.toLocaleString('pt-BR')}</div>
-              </div>
-            </Link>
-          );
-        })}
+      <h2 className="mb-3 mt-8 text-sm font-semibold text-slate-700">Programas legais e documentos</h2>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
+        {cartoes.map((c) => (
+          <Indicador key={c.rotulo} rotulo={c.rotulo} valor={n(c.sits)} para={`/documentos?situacao=${c.sits.join(',')}`} icone={c.icone} tom={c.tom} alerta={c.alerta} />
+        ))}
       </div>
     </>
   );

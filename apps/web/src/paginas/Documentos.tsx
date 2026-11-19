@@ -157,9 +157,9 @@ function FormNovoDocumento({ empresaId, aoSalvar }: { empresaId: string; aoSalva
 
 const CARTOES: { rotulo: string; sits: string[]; cor: string }[] = [
   { rotulo: 'Regulares', sits: ['regular'], cor: 'text-emerald-700' },
-  { rotulo: 'Próximos da revisão ou vencimento', sits: ['proximo_revisao', 'proximo_vencimento'], cor: 'text-amber-700' },
-  { rotulo: 'Vencidos', sits: ['vencido'], cor: 'text-red-700' },
-  { rotulo: 'Pendentes', sits: ['pendente'], cor: 'text-red-700' },
+  { rotulo: 'Próximos da revisão ou vencimento', sits: ['proximo_revisao', 'proximo_vencimento'], cor: 'text-amber-600' },
+  { rotulo: 'Vencidos', sits: ['vencido'], cor: 'text-red-600' },
+  { rotulo: 'Pendentes', sits: ['pendente'], cor: 'text-red-600' },
   { rotulo: 'Em elaboração ou revisão', sits: ['em_elaboracao', 'em_revisao'], cor: 'text-sky-700' },
   { rotulo: 'Substituídos', sits: ['substituido'], cor: '' },
 ];
@@ -193,9 +193,9 @@ function ListaDocumentos() {
             const n = contar(c.sits);
             const ativo = situacao === c.sits.join(',');
             return (
-              <button key={c.rotulo} className={`cartao p-3 text-left hover:border-marca-500 ${ativo ? 'border-marca-500' : ''}`} onClick={() => mudar('situacao', ativo ? '' : c.sits.join(','))}>
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{c.rotulo}</div>
-                <div className={`mt-1 text-2xl font-semibold tabular-nums ${n ? c.cor : ''}`}>{n}</div>
+              <button key={c.rotulo} className={`cartao p-4 text-left transition hover:-translate-y-0.5 hover:border-marca-200 hover:shadow-elevado ${ativo ? 'border-marca-500 ring-4 ring-marca-500/10' : ''}`} onClick={() => mudar('situacao', ativo ? '' : c.sits.join(','))}>
+                <div className="text-[13px] font-medium leading-snug text-slate-500">{c.rotulo}</div>
+                <div className={`mt-1 text-2xl font-semibold tracking-tight tabular-nums ${n ? c.cor : ''}`}>{n}</div>
               </button>
             );
           })}
@@ -227,7 +227,7 @@ function ListaDocumentos() {
                     <div className="text-xs text-slate-500">{d.tipoSigla ? `${d.tipoSigla} · ` : ''}{d.tipoNome}{d.estabelecimentoNome ? ` · ${d.estabelecimentoNome}` : ''}</div>
                   </td>
                   {!s.empresaId && <td>{d.empresaNome}</td>}
-                  <td className={d.aplicabilidade === 'a_avaliar' ? 'text-amber-700' : ''}>{APLICABILIDADES[d.aplicabilidade as keyof typeof APLICABILIDADES]}</td>
+                  <td className={d.aplicabilidade === 'a_avaliar' ? 'text-amber-600' : ''}>{APLICABILIDADES[d.aplicabilidade as keyof typeof APLICABILIDADES]}</td>
                   <td>{d.vigenteNumero ? <>v{d.vigenteNumero} · {d.vigenteResponsavel}</> : '—'}</td>
                   <td><TextoPrazo p={d.proximoPrazo} /></td>
                   <td>

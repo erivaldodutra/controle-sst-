@@ -3,8 +3,9 @@ import {
   AlarmClock, Building2, ClipboardList, DatabaseBackup, FileSpreadsheet, GraduationCap, HeartPulse, LayoutDashboard, LogOut, Network,
   FileText, Search, ShieldCheck, Stethoscope, UserCog, Users,
 } from 'lucide-react';
+import { ChevronsUpDown, Menu as MenuIcone, X } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { Permissao } from '@sst/shared';
 import { api, qs } from '../lib/api';
 import { cpf } from '../lib/formato';
@@ -49,63 +50,126 @@ const GRUPOS: { titulo: string; itens: Item[] }[] = [
   },
 ];
 
-export function Layout({ children }: { children: ReactNode }) {
+function iniciais(nome: string) {
+  const p = nome.trim().split(/\s+/);
+  return ((p[0]?.[0] ?? '') + (p.length > 1 ? p[p.length - 1]![0] : '')).toUpperCase();
+}
+
+function Menu({ aoNavegar }: { aoNavegar?: () => void }) {
   const s = useSessao();
   return (
-    <div className="flex min-h-screen">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
-        <div className="flex items-center gap-2 px-5 py-4">
-          <ShieldCheck className="text-marca-600" size={24} />
-          <span className="font-semibold">Controle SST</span>
+    <>
+      <div className="flex items-center gap-3 px-5 pb-2 pt-5">
+        <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-marca-400 to-marca-700 shadow-lg shadow-marca-900/40 ring-1 ring-white/10">
+          <ShieldCheck className="text-white" size={20} strokeWidth={2.2} />
         </div>
-        <nav className="flex-1 overflow-y-auto px-3 pb-4">
-          {GRUPOS.map((g) => {
-            const itens = g.itens.filter((i) => s.pode(i.permissao));
-            if (!itens.length) return null;
-            return (
-              <div key={g.titulo} className="mt-4">
-                <div className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{g.titulo}</div>
+        <div className="leading-tight">
+          <div className="font-semibold tracking-tight text-white">Controle SST</div>
+          <div className="text-[11px] text-slate-400">Saúde e Segurança do Trabalho</div>
+        </div>
+      </div>
+      <nav className="flex-1 overflow-y-auto px-3 pb-4 [scrollbar-color:rgb(255_255_255/0.15)_transparent]">
+        {GRUPOS.map((g) => {
+          const itens = g.itens.filter((i) => s.pode(i.permissao));
+          if (!itens.length) return null;
+          return (
+            <div key={g.titulo} className="mt-5">
+              <div className="px-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-500">{g.titulo}</div>
+              <div className="space-y-0.5">
                 {itens.map((i) => (
                   <NavLink
                     key={i.para}
                     to={i.para}
                     end={i.para === '/'}
+                    onClick={aoNavegar}
                     className={({ isActive }) =>
-                      `flex items-center gap-2 rounded-md px-2 py-1.5 text-sm ${isActive ? 'bg-marca-50 font-medium text-marca-700' : 'text-slate-600 hover:bg-slate-50'}`
+                      `group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] transition ${
+                        isActive
+                          ? 'bg-white/[0.08] font-medium text-white before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-marca-400'
+                          : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-100'
+                      }`
                     }
                   >
-                    {i.icone}
-                    {i.rotulo}
+                    {({ isActive }) => (
+                      <>
+                        <span className={isActive ? 'text-marca-300' : 'text-slate-500 transition group-hover:text-slate-300'}>{i.icone}</span>
+                        <span className="truncate">{i.rotulo}</span>
+                      </>
+                    )}
                   </NavLink>
                 ))}
               </div>
-            );
-          })}
-        </nav>
-        <div className="border-t border-slate-200 p-3 text-sm">
-          <Link to="/minha-conta" className="block truncate font-medium hover:underline">{s.eu.nome}</Link>
-          <div className="truncate text-xs text-slate-500">{s.eu.email}</div>
-          <button className="mt-2 flex items-center gap-1 text-xs text-slate-500 hover:text-red-600" onClick={s.sair}>
-            <LogOut size={13} /> Sair
+            </div>
+          );
+        })}
+      </nav>
+      <div className="m-3 rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/[0.06]">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/minha-conta"
+            onClick={aoNavegar}
+            className="grid size-9 shrink-0 place-items-center rounded-full bg-marca-500/20 text-xs font-semibold text-marca-200 ring-1 ring-marca-400/30"
+            title="Minha conta"
+          >
+            {iniciais(s.eu.nome)}
+          </Link>
+          <div className="min-w-0 flex-1">
+            <Link to="/minha-conta" onClick={aoNavegar} className="block truncate text-sm font-medium text-slate-100 hover:text-white">{s.eu.nome}</Link>
+            <div className="truncate text-xs text-slate-500">{s.eu.email}</div>
+          </div>
+          <button className="rounded-lg p-2 text-slate-500 transition hover:bg-white/[0.06] hover:text-red-300" onClick={s.sair} title="Sair" aria-label="Sair">
+            <LogOut size={16} />
           </button>
         </div>
+      </div>
+    </>
+  );
+}
+
+export function Layout({ children }: { children: ReactNode }) {
+  const s = useSessao();
+  const [menuAberto, setMenuAberto] = useState(false);
+  const { pathname } = useLocation();
+  useEffect(() => setMenuAberto(false), [pathname]);
+  return (
+    <div className="flex min-h-screen">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-noite-900 bg-gradient-to-b from-noite-800 to-noite-900 lg:flex">
+        <Menu />
       </aside>
+      {menuAberto && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label="Menu">
+          <div className="absolute inset-0 animate-surgir bg-noite-900/60 backdrop-blur-sm" onClick={() => setMenuAberto(false)} />
+          <aside className="relative flex h-full w-72 max-w-[85vw] flex-col bg-gradient-to-b from-noite-800 to-noite-900 shadow-2xl">
+            <button className="absolute right-3 top-5 rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white" onClick={() => setMenuAberto(false)} aria-label="Fechar menu">
+              <X size={18} />
+            </button>
+            <Menu aoNavegar={() => setMenuAberto(false)} />
+          </aside>
+        </div>
+      )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white/95 px-4 py-2.5 backdrop-blur md:px-6">
-          <select
-            className="campo max-w-xs"
-            value={s.empresaId ?? ''}
-            onChange={(e) => s.setEmpresaId(e.target.value || null)}
-            aria-label="Empresa"
-          >
-            <option value="">Todas as empresas</option>
-            {s.empresas.map((e) => (
-              <option key={e.id} value={e.id}>{e.nomeFantasia || e.razaoSocial}</option>
-            ))}
-          </select>
+        <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-md md:px-8">
+          <button className="btn-secundario px-2.5 lg:hidden" onClick={() => setMenuAberto(true)} aria-label="Abrir menu">
+            <MenuIcone size={18} />
+          </button>
+          <div className="relative min-w-0 flex-1 sm:max-w-xs sm:flex-none">
+            <Building2 size={16} className="pointer-events-none absolute left-3 top-3 text-slate-400" />
+            <select
+              className="campo appearance-none pl-9 pr-9 font-medium"
+              value={s.empresaId ?? ''}
+              onChange={(e) => s.setEmpresaId(e.target.value || null)}
+              aria-label="Empresa"
+            >
+              <option value="">Todas as empresas</option>
+              {s.empresas.map((e) => (
+                <option key={e.id} value={e.id}>{e.nomeFantasia || e.razaoSocial}</option>
+              ))}
+            </select>
+            <ChevronsUpDown size={15} className="pointer-events-none absolute right-3 top-3 text-slate-400" />
+          </div>
           <BuscaGlobal />
         </header>
-        <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-6">{children}</main>
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>
     </div>
   );
@@ -139,10 +203,10 @@ function BuscaGlobal() {
     nav(url);
   };
   return (
-    <div ref={ref} className="relative min-w-48 flex-1 md:max-w-md">
-      <Search size={15} className="pointer-events-none absolute left-3 top-2.5 text-slate-400" />
+    <div ref={ref} className="relative min-w-48 flex-1 basis-full sm:basis-auto md:max-w-lg">
+      <Search size={16} className="pointer-events-none absolute left-3 top-3 text-slate-400" />
       <input
-        className="campo pl-8"
+        className="campo bg-slate-50/80 pl-9 focus:bg-white"
         placeholder="Buscar funcionário (nome, CPF, matrícula) ou empresa"
         value={q}
         onChange={(e) => {
@@ -152,16 +216,16 @@ function BuscaGlobal() {
         onFocus={() => setAberta(true)}
       />
       {aberta && termo.length >= 2 && data && (
-        <div className="absolute left-0 right-0 top-11 z-30 max-h-96 overflow-y-auto rounded-md border border-slate-200 bg-white text-sm shadow-lg">
+        <div className="absolute left-0 right-0 top-12 z-30 max-h-96 animate-surgir overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 text-sm shadow-elevado">
           {data.empresas.length + data.funcionarios.length === 0 && <div className="px-3 py-3 text-slate-500">Nada encontrado</div>}
           {data.funcionarios.map((f: any) => (
-            <button key={f.id} className="block w-full px-3 py-2 text-left hover:bg-slate-50" onClick={() => ir(`/funcionarios/${f.id}`)}>
+            <button key={f.id} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-marca-50" onClick={() => ir(`/funcionarios/${f.id}`)}>
               <div className="font-medium">{f.nome}</div>
               <div className="text-xs text-slate-500">CPF {cpf(f.cpf)} · Matr. {f.matricula ?? '—'} · {f.empresa}</div>
             </button>
           ))}
           {data.empresas.map((e: any) => (
-            <button key={e.id} className="block w-full px-3 py-2 text-left hover:bg-slate-50" onClick={() => ir(`/empresas/${e.id}`, e.id)}>
+            <button key={e.id} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-marca-50" onClick={() => ir(`/empresas/${e.id}`, e.id)}>
               <div className="font-medium">{e.razaoSocial}</div>
               <div className="text-xs text-slate-500">Empresa</div>
             </button>
