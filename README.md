@@ -21,6 +21,16 @@ A internet só será usada, no futuro, para transmitir ao eSocial e baixar atual
 | Busca e filtros | Seletor de empresa no topo, busca global por nome/CPF/matrícula, filtros por situação, estabelecimento, setor, função e GHE |
 | Backup | Backup completo criptografado (AES-256-GCM, senha própria): automático diário ou semanal, ao fechar o sistema e sob demanda; pasta de destino escolhida (pendrive, HD externo), com aviso quando ela não está conectada; restauração pela lista ou por arquivo, verificada antes de substituir os dados |
 
+## O que a Fase 7 entrega
+
+| Área | Funcionalidades |
+| --- | --- |
+| Revisão de segurança | Dependências atualizadas (auditoria de produção sem vulnerabilidades conhecidas). Sessão encerrada por inatividade (padrão 60 min, de 5 a 720), além do limite de 12 h; a consulta automática do sino não conta como uso. Cabeçalhos HTTP adicionais (Cache-Control no-store na API, COOP, CORP, Permissions-Policy e CSP mais restrita). Mudanças de configuração e cada limpeza ficam na auditoria |
+| Política de retenção | Tela *Segurança e retenção*: só avisos já lidos e sessões encerradas são apagados, nos prazos configurados (padrão 180 e 90 dias), uma vez por dia com o programa aberto ou sob demanda. ASO, documentos, treinamentos, ocorrências, ações, eventos do eSocial e auditoria nunca são apagados; a tela mostra o prazo mínimo legal de cada categoria, a quantidade guardada e o histórico das limpezas |
+| Teste de restauração | *Backup › Testar restauração*: abre o backup num PostgreSQL temporário, separado do banco em uso, confere a versão do banco e conta os registros das tabelas principais. Também roda sozinho depois de um backup automático quando o último teste tem mais de 7 dias |
+| Teste de carga | `pnpm --filter @sst/api carga` cria 30 empresas e 30 mil vínculos (com ASOs, treinamentos, ações, ocorrências e documentos) num banco descartável e mede as telas e relatórios principais; o resultado fica em `apps/api/carga/resultado.json`. Com esse volume, todas as telas respondem em até 1,5 s e os relatórios em até 1,8 s |
+| Homologação | Roteiro com a checklist por módulo, o relatório de segurança e os riscos aceitos, para conferir no notebook com dados reais |
+
 ## O que a Fase 6 entrega
 
 | Área | Funcionalidades |
