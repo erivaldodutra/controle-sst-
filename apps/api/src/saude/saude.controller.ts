@@ -146,11 +146,14 @@ export class SaudeController {
     @Query('empresaId') empresaId?: string,
     @Query('tipo') tipo?: string,
     @Query('todos') todos?: string,
+    @Query('resumo') soResumo?: string,
   ) {
+    // Com dezenas de milhares de funcionários a tela recebe só as 2.000 pendências mais urgentes; o resumo conta todas.
     return this.vencimentos.listar(u, {
       empresaId: empresaId ? uuidValido(empresaId) : undefined,
       tipo: tipo === 'aso' || tipo === 'treinamento' ? tipo : undefined,
       incluirEmDia: todos === '1',
+      max: soResumo === '1' ? 0 : 2000,
     });
   }
 

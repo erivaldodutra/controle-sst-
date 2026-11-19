@@ -1,0 +1,181 @@
+{
+  "executadoEm": "2026-11-19T18:36:17.668Z",
+  "node": "v22.23.5",
+  "volume": {
+    "empresa": 30,
+    "funcionario": 30000,
+    "vinculo": 30000,
+    "lotacao": 30000,
+    "aso": 59970,
+    "turma_participante": 14945,
+    "acao": 3000,
+    "ocorrencia": 1500,
+    "documento": 360,
+    "notificacao": 14147,
+    "auditoria": 172119
+  },
+  "medidas": [
+    {
+      "nome": "Início (contagens)",
+      "ms": 125,
+      "bytes": 126,
+      "limite": 2000
+    },
+    {
+      "nome": "Notificações (1ª geração)",
+      "ms": 1475,
+      "bytes": 62358,
+      "limite": 2000
+    },
+    {
+      "nome": "Notificações",
+      "ms": 1251,
+      "bytes": 62358,
+      "limite": 2000
+    },
+    {
+      "nome": "Calendário (90 dias, como a tela)",
+      "ms": 1077,
+      "bytes": 4330729,
+      "limite": 2000
+    },
+    {
+      "nome": "Calendário (mês atual)",
+      "ms": 956,
+      "bytes": 2729884,
+      "limite": 2000
+    },
+    {
+      "nome": "Início (resumo de vencimentos)",
+      "ms": 1013,
+      "bytes": 173,
+      "limite": 2000
+    },
+    {
+      "nome": "Indicadores (12 meses)",
+      "ms": 1137,
+      "bytes": 5840,
+      "limite": 2000
+    },
+    {
+      "nome": "Indicadores de uma empresa",
+      "ms": 547,
+      "bytes": 3023,
+      "limite": 2000
+    },
+    {
+      "nome": "Funcionários (página 1)",
+      "ms": 888,
+      "bytes": 20518,
+      "limite": 2000
+    },
+    {
+      "nome": "Funcionários de uma empresa",
+      "ms": 43,
+      "bytes": 20739,
+      "limite": 2000
+    },
+    {
+      "nome": "Busca por nome",
+      "ms": 75,
+      "bytes": 1760,
+      "limite": 2000
+    },
+    {
+      "nome": "ASOs (página 1)",
+      "ms": 545,
+      "bytes": 34198,
+      "limite": 2000
+    },
+    {
+      "nome": "Vencimentos (ASO e treinamentos)",
+      "ms": 943,
+      "bytes": 782790,
+      "limite": 2000
+    },
+    {
+      "nome": "Ações",
+      "ms": 79,
+      "bytes": 3595521,
+      "limite": 2000
+    },
+    {
+      "nome": "Ocorrências",
+      "ms": 281,
+      "bytes": 955701,
+      "limite": 2000
+    },
+    {
+      "nome": "Documentos",
+      "ms": 16,
+      "bytes": 534537,
+      "limite": 2000
+    },
+    {
+      "nome": "Auditoria",
+      "ms": 7,
+      "bytes": 147444,
+      "limite": 2000
+    },
+    {
+      "nome": "Política de retenção",
+      "ms": 164,
+      "bytes": 1572,
+      "limite": 2000
+    },
+    {
+      "nome": "Técnico: notificações",
+      "ms": 451,
+      "bytes": 62880,
+      "limite": 2000
+    },
+    {
+      "nome": "Técnico: indicadores",
+      "ms": 386,
+      "bytes": 3392,
+      "limite": 2000
+    },
+    {
+      "nome": "Técnico: vencimentos",
+      "ms": 320,
+      "bytes": 787262,
+      "limite": 2000
+    },
+    {
+      "nome": "Técnico: funcionários",
+      "ms": 836,
+      "bytes": 20667,
+      "limite": 2000
+    },
+    {
+      "nome": "Relatório funcionários (Excel, uma empresa)",
+      "ms": 149,
+      "bytes": 55166,
+      "limite": 15000
+    },
+    {
+      "nome": "Relatório ASO (PDF, uma empresa)",
+      "ms": 152,
+      "bytes": 122421,
+      "limite": 15000
+    },
+    {
+      "nome": "Relatório ASO (Excel, todas)",
+      "ms": 1480,
+      "bytes": 736843,
+      "limite": 15000
+    },
+    {
+      "nome": "Relatório ações (PDF, todas)",
+      "ms": 925,
+      "bytes": 717620,
+      "limite": 15000
+    },
+    {
+      "nome": "Relatório treinamentos (Excel, todas)",
+      "ms": 1749,
+      "bytes": 664922,
+      "limite": 15000
+    }
+  ]
+}
