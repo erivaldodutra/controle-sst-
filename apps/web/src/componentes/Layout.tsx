@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   AlarmClock, Building2, ClipboardList, DatabaseBackup, FileSpreadsheet, GraduationCap, HeartPulse, LayoutDashboard, LogOut, Network,
-  FileText, Search, ShieldCheck, Stethoscope, UserCog, Users,
+  ClipboardCheck, FileText, ListTodo, Scale, Search, ShieldCheck, Stethoscope, UserCog, Users,
 } from 'lucide-react';
 import { ChevronsUpDown, Menu as MenuIcone, X } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -38,6 +38,14 @@ const GRUPOS: { titulo: string; itens: Item[] }[] = [
     titulo: 'Programas legais',
     itens: [
       { para: '/documentos', rotulo: 'Programas e documentos', icone: <FileText size={17} />, permissao: 'documentos.ler' },
+    ],
+  },
+  {
+    titulo: 'Gestão de SST',
+    itens: [
+      { para: '/acoes', rotulo: 'Planos de ação', icone: <ListTodo size={17} />, permissao: 'acoes.ler' },
+      { para: '/inspecoes', rotulo: 'Inspeções e ocorrências', icone: <ClipboardCheck size={17} />, permissao: 'inspecoes.ler' },
+      { para: '/conformidade', rotulo: 'Matriz de conformidade', icone: <Scale size={17} />, permissao: 'conformidade.ler' },
     ],
   },
   {

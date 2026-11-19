@@ -28,6 +28,10 @@ import { TreinamentosController } from './treinamentos/treinamentos.controller';
 import { TreinamentosService } from './treinamentos/treinamentos.service';
 import { DocumentosController } from './documentos/documentos.controller';
 import { DocumentosService } from './documentos/documentos.service';
+import { AcoesController, ConformidadeController, InspecoesController } from './acoes/acoes.controller';
+import { AcoesService } from './acoes/acoes.service';
+import { ConformidadeService } from './acoes/conformidade.service';
+import { InspecoesService } from './acoes/inspecoes.service';
 
 export interface OpcoesApp {
   config: Configuracao;
@@ -50,7 +54,7 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
     controllers: [
       AuthController, EmpresasController, EstruturaController, FuncionariosController,
       ImportacaoController, UsuariosController, PainelController, SaudeController, TreinamentosController,
-      DocumentosController,
+      DocumentosController, AcoesController, InspecoesController, ConformidadeController,
       ...(op.backup ? [BackupController] : []),
     ],
     providers: [
@@ -61,6 +65,7 @@ export async function criarApp(op: OpcoesApp): Promise<{ app: INestApplication; 
       { provide: APP_FILTER, useClass: FiltroErros },
       AuthService, EmpresasService, EstruturaService, FuncionariosService, ImportacaoService, UsuariosService,
       CadastrosSaudeService, AsoService, VencimentosService, TreinamentosService, DocumentosService,
+      AcoesService, InspecoesService, ConformidadeService,
     ],
   })
   class AppModule {}

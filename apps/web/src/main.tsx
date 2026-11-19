@@ -24,6 +24,12 @@ import { Turma } from './paginas/Turma';
 import { Vencimentos } from './paginas/Vencimentos';
 import { Documento } from './paginas/Documento';
 import { Documentos } from './paginas/Documentos';
+import { Acao } from './paginas/Acao';
+import { Acoes } from './paginas/Acoes';
+import { Conformidade } from './paginas/Conformidade';
+import { Inspecao } from './paginas/Inspecao';
+import { Inspecoes } from './paginas/Inspecoes';
+import { Ocorrencia } from './paginas/Ocorrencia';
 import './estilo.css';
 
 const qc = new QueryClient({
@@ -77,6 +83,12 @@ function App() {
             <Route path="/turmas/:id" element={<Turma />} />
             <Route path="/documentos" element={<Documentos />} />
             <Route path="/documentos/:id" element={<Documento />} />
+            <Route path="/acoes" element={<Acoes />} />
+            <Route path="/acoes/:id" element={<Acao />} />
+            <Route path="/inspecoes" element={<Inspecoes />} />
+            <Route path="/inspecoes/:id" element={<Inspecao />} />
+            <Route path="/ocorrencias/:id" element={<Ocorrencia />} />
+            <Route path="/conformidade" element={<Conformidade />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/auditoria" element={<Auditoria />} />
             <Route path="/backup" element={<Backup />} />
