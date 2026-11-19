@@ -102,5 +102,5 @@ function parse(d: Definicao, corpo: unknown): Record<string, unknown> {
       mensagem: 'Dados inválidos',
       campos: r.error.issues.map((i) => ({ campo: i.path.join('.'), mensagem: i.message })),
     });
-  return r.data;
+  return r.data as Record<string, unknown>;
 }

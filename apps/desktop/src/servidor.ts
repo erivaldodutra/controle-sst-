@@ -43,7 +43,7 @@ export function gravarSegredos(pastaDados: string, cofre: Cofre, s: Segredos) {
   writeFileSync(join(pastaDados, ARQ_SEGREDOS), cofre.cifrar(JSON.stringify(s)), { mode: 0o600 });
 }
 
-async function portaLivre(): Promise<number> {
+export async function portaLivre(): Promise<number> {
   return new Promise((ok, erro) => {
     const s = createServer();
     s.unref();
@@ -53,6 +53,24 @@ async function portaLivre(): Promise<number> {
       s.close(() => ok(p));
     });
   });
+}
+
+/** Instância do PostgreSQL embutido numa pasta (usada pelo banco principal e pelo teste de restauração). */
+export async function novoPostgres(pasta: string, senhaSuper: string, porta: number, log?: (m: string) => void): Promise<EmbeddedPostgres> {
+  // embedded-postgres é publicado só como ES module.
+  const { default: EP } = await import('embedded-postgres');
+  return new EP({
+    databaseDir: pasta,
+    user: 'postgres',
+    password: senhaSuper,
+    port: porta,
+    persistent: true,
+    authMethod: 'scram-sha-256',
+    initdbFlags: ['--encoding=UTF8', '--locale=C'],
+    postgresFlags: ['-c', 'listen_addresses=127.0.0.1'],
+    onLog: (m: unknown) => log?.(`[pg] ${String(m).trim()}`),
+    onError: (m: unknown) => log?.(`[pg:erro] ${String(m).trim()}`),
+  } as any);
 }
 
 export interface OpcoesServidor {
@@ -81,21 +99,8 @@ export class Servidor {
     return join(this.op.pastaDados, 'pg');
   }
 
-  private async criarPg(): Promise<EmbeddedPostgres> {
-    // embedded-postgres é publicado só como ES module.
-    const { default: EP } = await import('embedded-postgres');
-    return new EP({
-      databaseDir: this.pastaPg,
-      user: 'postgres',
-      password: this.segredos.senhaSuper,
-      port: this.portaPg,
-      persistent: true,
-      authMethod: 'scram-sha-256',
-      initdbFlags: ['--encoding=UTF8', '--locale=C'],
-      postgresFlags: ['-c', 'listen_addresses=127.0.0.1'],
-      onLog: (m: unknown) => this.op.log?.(`[pg] ${String(m).trim()}`),
-      onError: (m: unknown) => this.op.log?.(`[pg:erro] ${String(m).trim()}`),
-    } as any);
+  private criarPg(): Promise<EmbeddedPostgres> {
+    return novoPostgres(this.pastaPg, this.segredos.senhaSuper, this.portaPg, this.op.log);
   }
 
   async iniciarBanco() {

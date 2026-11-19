@@ -9,6 +9,7 @@ const TABELAS: Record<string, string> = {
   empresa: 'Empresa', estabelecimento: 'Estabelecimento', setor: 'Setor', cargo: 'Cargo', funcao: 'Função', ghe: 'GHE',
   funcionario: 'Funcionário', vinculo: 'Vínculo', lotacao: 'Lotação', afastamento: 'Afastamento', importacao: 'Importação',
   usuario: 'Usuário', usuario_atribuicao: 'Perfil de usuário', perfil: 'Perfil', perfil_permissao: 'Permissão de perfil',
+  tenant_config: 'Configuração geral', retencao_execucao: 'Limpeza de retenção',
 };
 const OPS: Record<string, string> = { INSERT: 'Inclusão', UPDATE: 'Alteração', DELETE: 'Exclusão' };
 const OCULTOS = new Set(['tenant_id', 'criado_em', 'criado_por', 'atualizado_em', 'atualizado_por']);

@@ -9,20 +9,21 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "tsc -p tsconfig.build.json && node dist/main.js",
     "db:migrate": "node dist/db/migrar-cli.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "carga": "tsc -p tsconfig.build.json && vitest run -c vitest.carga.config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.5.0",
-    "@nestjs/common": "11.1.6",
-    "@nestjs/core": "11.1.6",
-    "@nestjs/platform-express": "11.1.6",
+    "@nestjs/common": "11.2.8",
+    "@nestjs/core": "11.2.8",
+    "@nestjs/platform-express": "11.2.8",
     "@node-rs/argon2": "2.0.2",
     "@sst/shared": "workspace:*",
     "@xmldom/xmldom": "0.9.12",
     "cookie-parser": "1.4.7",
     "exceljs": "4.4.0",
     "express": "5.1.0",
-    "node-forge": "1.4.2",
+    "node-forge": "1.4.3",
     "otplib": "12.0.1",
     "pdf-lib": "1.17.1",
     "pg": "8.16.3",
@@ -30,7 +31,7 @@
     "rxjs": "7.8.2",
     "xml-crypto": "6.4.0",
     "xmllint-wasm": "5.3.0",
-    "zod": "3.25.76"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@swc/core": "1.13.5",
@@ -44,6 +45,6 @@
     "supertest": "7.1.4",
     "typescript": "5.9.3",
     "unplugin-swc": "1.5.7",
-    "vitest": "3.2.4"
+    "vitest": "3.2.7"
   }
 }

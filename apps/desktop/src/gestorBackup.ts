@@ -1,8 +1,9 @@
 import { accessSync, chmodSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
-import type { ConfigBackup, EstadoBackup, ServicoBackup } from '@sst/api';
+import { Client } from 'pg';
+import type { ConfigBackup, EstadoBackup, ServicoBackup, VerificacaoBackup } from '@sst/api';
 import { abrirBackup, criarBackup } from './backup';
-import { gravarSegredos, Servidor } from './servidor';
+import { BANCO_NOME, gravarSegredos, novoPostgres, portaLivre, Servidor } from './servidor';
 
 export interface Dialogos {
   escolherDestino(nomeSugerido: string): Promise<string | null>;
@@ -12,6 +13,12 @@ export interface Dialogos {
 }
 
 export const ARQ_CONFIG_BACKUP = 'backup-config.json';
+export const ARQ_VERIFICACOES = 'verificacoes-backup.json';
+/** Depois de um backup automático, testa a restauração se o último teste tiver mais que isso. */
+const TESTAR_A_CADA = 7 * 24 * 3600_000;
+/** Tabelas contadas no teste de restauração (as principais de cada módulo). */
+const TABELAS_CONFERIDAS = ['usuario', 'empresa', 'funcionario', 'vinculo', 'aso', 'turma_participante', 'documento_versao',
+  'acao', 'ocorrencia', 'esocial_evento', 'auditoria'];
 export const CONFIG_PADRAO: ConfigBackup = { pasta: null, frequencia: 'diario', aoSair: true, manter: 10 };
 const INTERVALO = { diario: 24 * 3600_000, semanal: 7 * 24 * 3600_000 } as const;
 /** Nome dos arquivos criados pelo sistema; só esses entram na limpeza dos antigos. */
@@ -99,6 +106,7 @@ export class GestorBackup implements ServicoBackup {
       aviso: d.aviso ?? null,
       config: this.config,
       proximoAutomatico: this.proximo(),
+      ultimaVerificacao: this.verificacoes()[0] ?? null,
       backups: this.lista().map(({ arquivo, pasta, caminho, criadoEm, bytes }) => ({ arquivo, pasta, caminho, criadoEm, bytes })),
     };
   }
@@ -233,6 +241,62 @@ export class GestorBackup implements ServicoBackup {
     });
   }
 
+  private verificacoes(): VerificacaoBackup[] {
+    try {
+      return JSON.parse(readFileSync(join(this.srv.op.pastaDados, ARQ_VERIFICACOES), 'utf8'));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Teste de restauração: abre o backup numa pasta separada, sobe um PostgreSQL temporário
+   * em outra porta com as senhas do próprio backup e confere a versão e os dados.
+   * O banco em uso não é parado nem alterado.
+   */
+  async verificar(senha: string, caminho?: string): Promise<VerificacaoBackup> {
+    const lista = this.lista();
+    const alvo = caminho ? lista.find((x) => x.caminho === caminho) : lista[0];
+    if (!alvo) throw falha(caminho ? 'Backup não encontrado. Atualize a página e tente de novo.' : 'Ainda não há backup. Crie um backup primeiro.');
+    return this.exclusivo(async () => {
+      const inicio = Date.now();
+      const temp = join(this.srv.op.pastaDados, 'verificacao-temp');
+      const r: VerificacaoBackup = {
+        arquivo: alvo.arquivo, verificadoEm: new Date().toISOString(), ok: false, versaoBanco: null, contagens: {}, duracaoMs: 0, erro: null,
+      };
+      let pg: Awaited<ReturnType<typeof novoPostgres>> | undefined;
+      try {
+        const seg = await abrirBackup(alvo.caminho, senha, temp);
+        chmodSync(temp, 0o700);
+        // O arquivo de PID copiado junto impediria o PostgreSQL temporário de iniciar.
+        rmSync(join(temp, 'postmaster.pid'), { force: true });
+        const porta = await portaLivre();
+        pg = await novoPostgres(temp, seg.senhaSuper, porta, this.log);
+        await pg.start();
+        const c = new Client({ connectionString: `postgres://sst_owner:${encodeURIComponent(seg.senhaDono)}@127.0.0.1:${porta}/${BANCO_NOME}` });
+        await c.connect();
+        try {
+          r.versaoBanco = (await c.query('SELECT max(nome) AS v FROM schema_migracao')).rows[0]?.v ?? null;
+          for (const t of TABELAS_CONFERIDAS) r.contagens[t] = (await c.query(`SELECT count(*)::int AS n FROM ${t}`)).rows[0].n;
+        } finally {
+          await c.end().catch(() => {});
+        }
+        if (!r.versaoBanco) throw new Error('O backup não tem as tabelas do sistema');
+        if (!r.contagens.usuario) throw new Error('O backup não tem nenhum usuário cadastrado');
+        r.ok = true;
+      } catch (e: any) {
+        r.erro = e?.message ?? String(e);
+      } finally {
+        await pg?.stop().catch(() => {});
+        rmSync(temp, { recursive: true, force: true });
+        r.duracaoMs = Date.now() - inicio;
+      }
+      writeFileSync(join(this.srv.op.pastaDados, ARQ_VERIFICACOES), JSON.stringify([r, ...this.verificacoes()].slice(0, 20), null, 2));
+      this.log?.(r.ok ? `Teste de restauração aprovado: ${r.arquivo}` : `Teste de restauração falhou (${r.arquivo}): ${r.erro}`);
+      return r;
+    });
+  }
+
   /** Backup automático: confere de tempos em tempos se já passou o prazo desde o último. */
   async verificarAgendado(agora = Date.now()) {
     const c = this.config;
@@ -242,6 +306,10 @@ export class GestorBackup implements ServicoBackup {
     try {
       await this.criarAgora(true);
       this.log?.('Backup automático criado');
+      const ultimoTeste = this.verificacoes()[0];
+      if (!ultimoTeste || agora - Date.parse(ultimoTeste.verificadoEm) > TESTAR_A_CADA) {
+        await this.verificar(this.srv.segredos.senhaBackup!).catch((e) => this.log?.(`Falha no teste de restauração: ${e?.message}`));
+      }
       return true;
     } catch (e: any) {
       this.log?.(`Falha no backup automático: ${e?.message}`);

@@ -60,18 +60,25 @@ export class VencimentosService {
    * Lista de pendências e vencimentos com a faixa de alerta de cada uma:
    * faixa = menor prazo configurado que já foi alcançado (ex.: faltam 20 dias → faixa 30).
    */
-  async listar(u: Usuario, f: { empresaId?: string; tipo?: 'aso' | 'treinamento'; incluirEmDia?: boolean }) {
+  async listar(u: Usuario, f: {
+    empresaId?: string; tipo?: 'aso' | 'treinamento'; incluirEmDia?: boolean;
+    /** Só prazos até esta data (pendências sem data entram sempre). */
+    ate?: string;
+    /** Máximo de itens devolvidos; o resumo conta todos. */
+    max?: number;
+  }) {
     return this.banco.tx(u.ctx(), async (tx) => {
       const dias: number[] = (await tx.one('SELECT alertas_dias AS d FROM tenant_config'))!.d;
       const faixa = (n: number | null) => (n === null || n < 0 ? null : [...dias].sort((a, b) => a - b).find((d) => n <= d) ?? null);
       const filtro = `WHERE ($1::uuid IS NULL OR x.empresa_id = $1) AND ($2 OR x.situacao NOT IN ('em_dia'))`;
+      const ate = f.ate ?? null;
       const itens: any[] = [];
       if (f.tipo !== 'treinamento' && u.pode('saude.ler', f.empresaId)) {
         const r = await tx.query(
           `SELECT x.*, e.razao_social AS empresa FROM (${SQL_ASO_CONTROLE}) x JOIN empresa e ON e.id = x.empresa_id
-            ${filtro} AND ($3::uuid[] IS NULL OR x.empresa_id = ANY($3))
+            ${filtro} AND ($3::uuid[] IS NULL OR x.empresa_id = ANY($3)) AND ($4::date IS NULL OR x.vencimento IS NULL OR x.vencimento <= $4)
             ORDER BY x.dias_para_vencer NULLS FIRST, x.funcionario_nome`,
-          [f.empresaId ?? null, !!f.incluirEmDia, limite(u, 'saude.ler')],
+          [f.empresaId ?? null, !!f.incluirEmDia, limite(u, 'saude.ler'), ate],
         );
         for (const a of r)
           itens.push({
@@ -83,9 +90,9 @@ export class VencimentosService {
       if (f.tipo !== 'aso' && u.pode('treinamentos.ler', f.empresaId)) {
         const r = await tx.query(
           `SELECT x.*, e.razao_social AS empresa FROM (${SQL_EXIGIDOS}) x JOIN empresa e ON e.id = x.empresa_id
-            ${filtro} AND ($3::uuid[] IS NULL OR x.empresa_id = ANY($3))
+            ${filtro} AND ($3::uuid[] IS NULL OR x.empresa_id = ANY($3)) AND ($4::date IS NULL OR x.validade IS NULL OR x.validade <= $4)
             ORDER BY x.dias_para_vencer NULLS FIRST, x.funcionario_nome`,
-          [f.empresaId ?? null, !!f.incluirEmDia, limite(u, 'treinamentos.ler')],
+          [f.empresaId ?? null, !!f.incluirEmDia, limite(u, 'treinamentos.ler'), ate],
         );
         for (const t of r)
           itens.push({
@@ -100,7 +107,9 @@ export class VencimentosService {
         resumo[i.tipo] ??= {};
         resumo[i.tipo]![i.situacao] = (resumo[i.tipo]![i.situacao] ?? 0) + 1;
       }
-      return { alertasDias: dias, resumo, itens };
+      // Lista longa (milhares de pendências) vai em partes: as mais urgentes primeiro, o resumo conta todas.
+      const ordenados = f.max !== undefined ? itens.sort((a, b) => (a.diasParaVencer ?? -1e9) - (b.diasParaVencer ?? -1e9)).slice(0, f.max) : itens;
+      return { alertasDias: dias, resumo, total: itens.length, itens: ordenados };
     });
   }
 }

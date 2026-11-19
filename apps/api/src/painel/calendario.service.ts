@@ -17,6 +17,12 @@ import { VencimentosService } from '../saude/vencimentos.service';
  * documentos, ações, eventos do eSocial e certificado digital). Nada é digitado de novo, e cada
  * módulo aplica as próprias permissões.
  */
+const somarDiasIso = (iso: string, n: number) => {
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+
 @Injectable()
 export class CalendarioService {
   constructor(
@@ -26,8 +32,10 @@ export class CalendarioService {
     private readonly acoes: AcoesService,
   ) {}
 
-  async itens(u: Usuario, f: { empresaId?: string; ate?: string }): Promise<{ hoje: string; janela: number; itens: ItemCalendario[] }> {
+  async itens(u: Usuario, f: { empresaId?: string; ate?: string; soAvisos?: boolean }): Promise<{ hoje: string; janela: number; itens: ItemCalendario[] }> {
     const { hoje, janela } = await this.banco.tx(u.ctx(), (tx) => referencia(tx));
+    // Avisos só precisam dos prazos até o fim da janela de alerta; o calendário, até a data pedida.
+    if (f.soAvisos) f = { ...f, ate: somarDiasIso(hoje, janela) };
     const itens: ItemCalendario[] = [];
     const add = (categoria: CategoriaAlerta, chave: string, data: string | null, i: Omit<ItemCalendario, 'categoria' | 'chave' | 'data' | 'estado' | 'dias'>) => {
       if (!data) return;
@@ -36,7 +44,7 @@ export class CalendarioService {
     };
 
     if (u.pode('saude.ler', f.empresaId) || u.pode('treinamentos.ler', f.empresaId)) {
-      const v = await this.vencimentos.listar(u, { empresaId: f.empresaId, incluirEmDia: true });
+      const v = await this.vencimentos.listar(u, { empresaId: f.empresaId, incluirEmDia: true, ate: f.ate });
       for (const x of v.itens)
         add(x.tipo, `${x.tipo === 'aso' ? 'v' : `${x.referenciaId}`}:${x.funcionarioId}:${x.matricula}`, x.vencimento, {
           titulo: `${x.tipo === 'aso' ? 'ASO periódico' : `Treinamento: ${x.descricao}`} de ${x.funcionarioNome}`,
@@ -126,15 +134,20 @@ export class CalendarioService {
    * e devolve os do usuário. Roda no contexto do próprio usuário, então respeita as permissões.
    */
   async notificacoes(u: Usuario, f: { todas?: boolean } = {}) {
-    const [{ itens }, pref] = await Promise.all([this.itens(u, {}), this.preferencias(u)]);
+    const [{ itens }, pref] = await Promise.all([this.itens(u, { soAvisos: true }), this.preferencias(u)]);
     const avisos = itens.filter((i) => i.estado !== 'futuro' && pref.categorias[i.categoria]);
     return this.banco.tx(u.ctx(), async (tx) => {
-      for (const i of avisos)
+      // Uma única inserção para todos os avisos (com milhares de prazos, um INSERT por item ficava lento).
+      if (avisos.length)
         await tx.query(
           `INSERT INTO notificacao (tenant_id, usuario_id, empresa_id, categoria, chave, titulo, detalhe, link, data, estado)
-           VALUES (app.tenant_atual(), app.usuario_atual(), $1, $2, $3, $4, $5, $6, $7, $8)
+           SELECT app.tenant_atual(), app.usuario_atual(), x.empresa_id, x.categoria, x.chave, x.titulo, x.detalhe, x.link, x.data, x.estado
+             FROM unnest($1::uuid[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[], $7::date[], $8::text[])
+                  AS x(empresa_id, categoria, chave, titulo, detalhe, link, data, estado)
            ON CONFLICT (usuario_id, chave) DO NOTHING`,
-          [i.empresaId, i.categoria, `${i.chave}:${i.estado}`, i.titulo, i.detalhe, i.link, i.data, i.estado]);
+          [avisos.map((i) => i.empresaId), avisos.map((i) => i.categoria), avisos.map((i) => `${i.chave}:${i.estado}`),
+            avisos.map((i) => i.titulo), avisos.map((i) => i.detalhe), avisos.map((i) => i.link), avisos.map((i) => i.data),
+            avisos.map((i) => i.estado)]);
       // Aviso cujo prazo deixou de existir (ASO renovado, ação concluída) sai da lista de não lidas.
       const vivas = avisos.map((i) => `${i.chave}:${i.estado}`);
       await tx.query(`UPDATE notificacao SET lida_em = now() WHERE lida_em IS NULL AND NOT (chave = ANY($1::text[]))`, [vivas]);

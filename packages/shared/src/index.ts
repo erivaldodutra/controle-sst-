@@ -6,3 +6,4 @@ export * from './programas';
 export * from './acoes';
 export * from './esocial';
 export * from './painel';
+export * from './seguranca';

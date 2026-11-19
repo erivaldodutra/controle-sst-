@@ -55,7 +55,7 @@ function PainelVencimentos() {
   const s = useSessao();
   const { data } = useQuery({
     queryKey: ['vencimentos', s.empresaId, '', 'todos'],
-    queryFn: () => api.get(`/vencimentos${qs({ empresaId: s.empresaId, todos: '1' })}`),
+    queryFn: () => api.get(`/vencimentos${qs({ empresaId: s.empresaId, todos: '1', resumo: '1' })}`),
   });
   if (!data) return null;
   const n = (t: string, sit: string[]) => sit.reduce((a, x) => a + (data.resumo?.[t]?.[x] ?? 0), 0);

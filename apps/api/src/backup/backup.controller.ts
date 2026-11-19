@@ -25,6 +25,20 @@ export interface EstadoBackup {
   config: ConfigBackup;
   proximoAutomatico: string | null;
   backups: { arquivo: string; pasta: string; caminho: string; criadoEm: string; bytes: number }[];
+  /** Teste de restauração mais recente (o backup foi aberto num banco temporário e conferido). */
+  ultimaVerificacao: VerificacaoBackup | null;
+}
+
+/** Resultado do teste de restauração: o backup sobe num banco separado e os dados são contados. */
+export interface VerificacaoBackup {
+  arquivo: string;
+  verificadoEm: string;
+  ok: boolean;
+  /** Última atualização do banco presente no backup. */
+  versaoBanco: string | null;
+  contagens: Record<string, number>;
+  duracaoMs: number;
+  erro: string | null;
 }
 
 /** Implementado pelo aplicativo de desktop, que controla o banco embutido e os arquivos. */
@@ -39,6 +53,8 @@ export interface ServicoBackup {
   exportar(): Promise<{ arquivo: string | null }>;
   /** Restaura um backup da lista (caminho) ou um escolhido na janela do Windows, e reinicia o aplicativo. */
   restaurar(senha: string, caminho?: string): Promise<{ restaurado: boolean }>;
+  /** Testa a restauração num banco temporário, sem tocar no banco em uso. */
+  verificar(senha: string, caminho?: string): Promise<VerificacaoBackup>;
 }
 export const SERVICO_BACKUP = Symbol('SERVICO_BACKUP');
 
@@ -88,5 +104,12 @@ export class BackupController {
   restaurar(@Body() body: unknown) {
     const b = validar(z.object({ senha: z.string().min(1), caminho: z.string().min(1).max(1000).optional() }), body);
     return this.svc.restaurar(b.senha, b.caminho);
+  }
+
+  @Post('verificacao')
+  @Requer('backup.gerenciar')
+  verificar(@Body() body: unknown) {
+    const b = validar(z.object({ senha: z.string().min(1), caminho: z.string().min(1).max(1000).optional() }), body);
+    return this.svc.verificar(b.senha, b.caminho);
   }
 }

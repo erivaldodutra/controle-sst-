@@ -65,8 +65,12 @@ export class FuncionariosService {
     const where = cond.length ? `WHERE ${cond.join(' AND ')}` : '';
     const base = `FROM vinculo v JOIN funcionario fn ON fn.id = v.funcionario_id
                   JOIN vinculo_situacao s ON s.vinculo_id = v.id ${LOTACAO_ATUAL} ${where}`;
+    // A contagem só precisa da lotação quando algum filtro usa a lotação (com 30 mil vínculos, evita calcular a lotação de todos).
+    const usaLotacao = cond.some((c) => c.includes('la.'));
+    const baseContagem = usaLotacao ? base : `FROM vinculo v JOIN funcionario fn ON fn.id = v.funcionario_id
+                  JOIN vinculo_situacao s ON s.vinculo_id = v.id ${where}`;
     return this.banco.tx(u.ctx(), async (tx) => {
-      const total = (await tx.one(`SELECT count(*)::int AS n ${base}`, params))!.n;
+      const total = (await tx.one(`SELECT count(*)::int AS n ${baseContagem}`, params))!.n;
       params.push(f.limite, (f.pagina - 1) * f.limite);
       const itens = await tx.query(
         `SELECT fn.id AS "funcionarioId", v.id AS "vinculoId", v.empresa_id AS "empresaId", fn.nome, fn.cpf,

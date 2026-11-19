@@ -75,6 +75,11 @@ export function Vencimentos() {
           <option value="sem_aso">Sem ASO</option><option value="pendente">Treinamento nunca feito</option><option value="sem_vencimento">ASO sem vencimento</option>
         </select>
       </div>
+      {q.data && q.data.total > q.data.itens.length && (
+        <p className="mb-2 text-xs text-slate-500">
+          Mostrando as {q.data.itens.length.toLocaleString('pt-BR')} pendências mais urgentes de {q.data.total.toLocaleString('pt-BR')}. Escolha uma empresa no topo ou um tipo para ver o restante; o relatório em Excel traz todas.
+        </p>
+      )}
       <div className="cartao overflow-x-auto">
         {q.isLoading ? <Carregando /> : !itens.length ? <Vazio>Nenhuma pendência. Tudo em dia.</Vazio> : (
           <table className="tabela">
