@@ -34,6 +34,7 @@ const log = (m: string) => {
 const recursos = app.isPackaged ? process.resourcesPath : join(__dirname, '..', '..');
 const pastaWeb = app.isPackaged ? join(recursos, 'web') : join(recursos, 'web', 'dist');
 const pastaMigrations = app.isPackaged ? join(recursos, 'migrations') : join(recursos, 'api', 'migrations');
+const pastaEsocial = app.isPackaged ? join(recursos, 'esocial') : join(recursos, 'api', 'esocial');
 
 /** Segredos protegidos pelo Windows (DPAPI): só este usuário, neste computador, consegue ler. */
 const cofreSeguro: Cofre = {
@@ -175,7 +176,7 @@ async function iniciar() {
       bandeja.displayBalloon({ title: 'Dados transferidos', content: `Os dados agora ficam em ${pastaDados}`, iconType: 'info' });
 
     servidor = new Servidor({
-      pastaDados, pastaWeb, pastaMigrations, cofre, log, portaApi: PORTA,
+      pastaDados, pastaWeb, pastaMigrations, pastaEsocial, cofre, log, portaApi: PORTA,
       backup: (srv) => (gestor = new GestorBackup(srv, {
         escolherDestino: (nome) => naFrente(async (w) => (await dialog.showSaveDialog(w, {
           title: 'Salvar cópia do backup', defaultPath: nome, filters: [{ name: 'Backup do Controle SST', extensions: ['sstbak'] }],

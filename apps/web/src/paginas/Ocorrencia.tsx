@@ -6,6 +6,7 @@ import { TIPOS_OCORRENCIA } from '@sst/shared';
 import { api, qs } from '../lib/api';
 import { dataBr, hojeIso } from '../lib/formato';
 import { useSessao } from '../lib/sessao';
+import { SecaoCat } from '../componentes/cat';
 import { AcoesLigadas, FormAcao, OrigemFixa } from '../componentes/acoes';
 import { Aviso, Carregando, Modal, Titulo } from '../componentes/ui';
 import { FormSimples } from './Acao';
@@ -86,7 +87,7 @@ export function Ocorrencia() {
           {acoes.data && <AcoesLigadas acoes={acoes.data.itens} aoAbrir={(aid) => nav(`/acoes/${aid}`)} />}
         </section>
       )}
-      <p className="mt-3 text-xs text-slate-500">A CAT e o evento S-2210 serão tratados na fase do eSocial. Nada é transmitido a partir desta tela.</p>
+      <SecaoCat ocorrencia={o} />
 
       <Modal titulo="Editar ocorrência" aberto={janela === 'editar'} aoFechar={fechar}>
         {janela === 'editar' && <FormOcorrencia empresaId={o.empresaId} inicial={o} aoSalvar={salvo} />}

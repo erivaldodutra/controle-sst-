@@ -59,6 +59,8 @@ export interface OpcoesServidor {
   pastaDados: string;
   pastaWeb?: string;
   pastaMigrations?: string;
+  /** Esquemas oficiais do eSocial (XSD), para validar os eventos sem internet. */
+  pastaEsocial?: string;
   cofre: Cofre;
   backup?: (srv: Servidor) => ServicoBackup;
   log?: (m: string) => void;
@@ -205,7 +207,8 @@ export class Servidor {
 
   private async iniciarApi() {
     const { app, banco } = await criarApp({
-      config: { urlApp: this.urlBanco('sst_app'), chaveDados: Buffer.from(this.segredos.chaveDados, 'base64'), horasSessao: 12, cookieSeguro: false },
+      config: { urlApp: this.urlBanco('sst_app'), chaveDados: Buffer.from(this.segredos.chaveDados, 'base64'), horasSessao: 12, cookieSeguro: false,
+        pastaEsocial: this.op.pastaEsocial },
       pastaWeb: this.op.pastaWeb,
       log: false,
       backup: this.op.backup?.(this),

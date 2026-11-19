@@ -28,6 +28,9 @@ importers:
       '@sst/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@xmldom/xmldom':
+        specifier: 0.9.12
+        version: 0.9.12
       cookie-parser:
         specifier: 1.4.7
         version: 1.4.7
@@ -37,6 +40,9 @@ importers:
       express:
         specifier: 5.1.0
         version: 5.1.0
+      node-forge:
+        specifier: 1.4.2
+        version: 1.4.2
       otplib:
         specifier: 12.0.1
         version: 12.0.1
@@ -52,6 +58,12 @@ importers:
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
+      xml-crypto:
+        specifier: 6.4.0
+        version: 6.4.0
+      xmllint-wasm:
+        specifier: 5.3.0
+        version: 5.3.0(@types/node@22.18.6)
       zod:
         specifier: 3.25.76
         version: 3.25.76
@@ -71,6 +83,9 @@ importers:
       '@types/node':
         specifier: 22.18.6
         version: 22.18.6
+      '@types/node-forge':
+        specifier: 1.3.14
+        version: 1.3.14
       '@types/pg':
         specifier: 8.15.5
         version: 8.15.5
@@ -98,6 +113,9 @@ importers:
       embedded-postgres:
         specifier: 16.15.0-beta.19
         version: 16.15.0-beta.19
+      xmllint-wasm:
+        specifier: 5.3.0
+        version: 5.3.0(@types/node@22.18.6)
     devDependencies:
       '@sst/api':
         specifier: workspace:*
@@ -1182,6 +1200,9 @@ packages:
   '@types/multer@2.0.0':
     resolution: {integrity: sha512-C3Z9v9Evij2yST3RSBktxP9STm6OdMc5uR1xF1SGr98uv8dUlAL2hqwrZ3GVB3uyMyiegnscEK6PGtYvNrjTjw==}
 
+  '@types/node-forge@1.3.14':
+    resolution: {integrity: sha512-mhVF2BnD4BO+jtOp7z1CdzaK4mbuK0LLQYAvdOLqHTavxFNq4zA1EmYkpnFjP8HOUzedfQkRnp0E2ulSAYSzAw==}
+
   '@types/node@14.18.63':
     resolution: {integrity: sha512-fAtCfv4jJg+ExtXhvCkCqUKZ+4ok/JQk01qDKhL5BDDoS3AxKXhV5/MAVUZyQnSEd2GT92fkgZl0pz0Q0AzcIQ==}
 
@@ -1272,6 +1293,10 @@ packages:
 
   '@vitest/utils@3.2.4':
     resolution: {integrity: sha512-fB2V0JFrQSMsCo9HiSq3Ezpdv4iYaXRG1Sx8edX3MwxfyNn83mKiGzOcH+Fkxt4MHxr3y42fQi1oeAInqgX2QA==}
+
+  '@xmldom/is-dom-node@1.0.1':
+    resolution: {integrity: sha512-CJDxIgE5I0FH+ttq/Fxy6nRpxP70+e2O048EPe85J2use3XKdatVM7dDVvFNjQudd9B49NPoZ+8PG49zj4Er8Q==}
+    engines: {node: '>= 16'}
 
   '@xmldom/xmldom@0.8.15':
     resolution: {integrity: sha512-/5NV/vDALVFDXgLmfsy9TRCBlKwO2LNBFzpzvb9iIj+jR+eSc6DLYYvVOdivT/jm7MtU6TebYuRmzEOI7w40UA==}
@@ -2750,6 +2775,10 @@ packages:
   node-api-version@0.2.1:
     resolution: {integrity: sha512-2xP/IGGMmmSQpI1+O/k72jF/ykvZ89JeuKX3TLJAYPDVLUalrshrLHkeVcCCZqG/eEa635cr8IBYzgnDvM2O8Q==}
 
+  node-forge@1.4.2:
+    resolution: {integrity: sha512-rRtAR5XLJ8gCKd9du4qrKAsgCG1ObGP4gLeNJMa4vYSeq4bmBMOJk5IHkrviBV0q7uoAJlVd8HEQYQSVUb4FGQ==}
+    engines: {node: '>= 6.13.0'}
+
   node-releases@2.0.65:
     resolution: {integrity: sha512-PfvofsGQ+MiOQIPkX9fU8ELUWmy5zL74CdQaph/ismKszfFkfwXaw0cGiwbwym2hT9k5+mdyl8O5WQ1MD8EHmA==}
     engines: {node: '>=18'}
@@ -3694,12 +3723,26 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
+  xml-crypto@6.4.0:
+    resolution: {integrity: sha512-d21ModhBO/+QWWAmOjyDeQJuHNmsR/HtOxyBchiTbKfGNKuHYwQNd+SlLhwyyrwoAGLp4Qc6BQ7nAtnM47dHSQ==}
+    engines: {node: '>=16'}
+
   xmlbuilder@15.1.1:
     resolution: {integrity: sha512-yMqGBqtXyeN1e3TGYvgNgDVZ3j84W4cwkOXQswghol6APgZWaff9lnbvN7MHYJOiXsvGPXtjTYJEiC9J2wv9Eg==}
     engines: {node: '>=8.0'}
 
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
+
+  xmllint-wasm@5.3.0:
+    resolution: {integrity: sha512-sEgRXdf2t13eYCFCURmCE6h2hwleEOIS9VL/jOh9JJJnez2YXIooi2Ghm05/JZEPXyPawN8sMASPVZlmh8Sd6A==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      '@types/node': '>=16'
+
+  xpath@0.0.33:
+    resolution: {integrity: sha512-NNXnzrkDrAzalLhIUc01jO2mOzXGXh1JwPgkihcLLzw98c0WgYDmmjSh1Kl3wzaxSVWMuA+fe0WTWOBDWCBmNA==}
+    engines: {node: '>=0.6.0'}
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -4665,6 +4708,10 @@ snapshots:
     dependencies:
       '@types/express': 5.0.3
 
+  '@types/node-forge@1.3.14':
+    dependencies:
+      '@types/node': 22.18.6
+
   '@types/node@14.18.63': {}
 
   '@types/node@22.18.6':
@@ -4793,10 +4840,11 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 2.0.0
 
+  '@xmldom/is-dom-node@1.0.1': {}
+
   '@xmldom/xmldom@0.8.15': {}
 
-  '@xmldom/xmldom@0.9.12':
-    optional: true
+  '@xmldom/xmldom@0.9.12': {}
 
   abbrev@1.1.1: {}
 
@@ -6524,6 +6572,8 @@ snapshots:
     dependencies:
       semver: 7.8.6
 
+  node-forge@1.4.2: {}
+
   node-releases@2.0.65: {}
 
   nopt@6.0.0:
@@ -7627,9 +7677,21 @@ snapshots:
 
   wrappy@1.0.2: {}
 
+  xml-crypto@6.4.0:
+    dependencies:
+      '@xmldom/is-dom-node': 1.0.1
+      '@xmldom/xmldom': 0.8.15
+      xpath: 0.0.33
+
   xmlbuilder@15.1.1: {}
 
   xmlchars@2.2.0: {}
+
+  xmllint-wasm@5.3.0(@types/node@22.18.6):
+    dependencies:
+      '@types/node': 22.18.6
+
+  xpath@0.0.33: {}
 
   xtend@4.0.2: {}
 

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   AlarmClock, Building2, ClipboardList, DatabaseBackup, FileSpreadsheet, GraduationCap, HeartPulse, LayoutDashboard, LogOut, Network,
-  ClipboardCheck, FileText, ListTodo, Scale, Search, ShieldCheck, Stethoscope, UserCog, Users,
+  Biohazard, ClipboardCheck, FileText, Inbox, KeyRound, ListTodo, Scale, Search, Send, ShieldCheck, Stethoscope, UserCog, Users,
 } from 'lucide-react';
 import { ChevronsUpDown, Menu as MenuIcone, X } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -49,6 +49,15 @@ const GRUPOS: { titulo: string; itens: Item[] }[] = [
     ],
   },
   {
+    titulo: 'eSocial',
+    itens: [
+      { para: '/esocial', rotulo: 'Central de eventos', icone: <Send size={17} />, permissao: 'esocial.ler' },
+      { para: '/esocial/lotes', rotulo: 'Lotes e retornos', icone: <Inbox size={17} />, permissao: 'esocial.ler' },
+      { para: '/esocial/agentes', rotulo: 'Agentes nocivos por GHE', icone: <Biohazard size={17} />, permissao: 'esocial.ler' },
+      { para: '/esocial/config', rotulo: 'Configuração e certificados', icone: <KeyRound size={17} />, permissao: 'esocial.ler' },
+    ],
+  },
+  {
     titulo: 'Administração',
     itens: [
       { para: '/usuarios', rotulo: 'Usuários e perfis', icone: <UserCog size={17} />, permissao: 'usuarios.gerenciar' },
@@ -88,7 +97,7 @@ function Menu({ aoNavegar }: { aoNavegar?: () => void }) {
                   <NavLink
                     key={i.para}
                     to={i.para}
-                    end={i.para === '/'}
+                    end={i.para === '/' || i.para === '/esocial'}
                     onClick={aoNavegar}
                     className={({ isActive }) =>
                       `group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] transition ${
